@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "Weather",
+  "project_id": "a825c910-ffdd-44a6-a15a-be08af17f343"
+}
