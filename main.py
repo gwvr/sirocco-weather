@@ -26,6 +26,17 @@ DAILY_VARIABLES = [
     "sunset",
 ]
 
+HOURLY_VARIABLES = [
+    "weather_code",
+    "temperature_2m",
+    "precipitation_probability",
+    "wind_speed_10m",
+    "wind_direction_10m",
+    "wind_gusts_10m",
+    "relative_humidity_2m",
+    "uv_index",
+]
+
 WMO_CODES = {
     0: ("Clear Sky", "☀️"),
     1: ("Mainly Clear", "🌤️"),
@@ -65,6 +76,7 @@ def fetch_forecast(latitude: float, longitude: float, timezone: str) -> dict:
         "timezone": timezone,
         "forecast_days": 7,
         "daily": ",".join(DAILY_VARIABLES),
+        "hourly": ",".join(HOURLY_VARIABLES),
     }
     response = httpx.get(API_URL, params=params, timeout=10)
     response.raise_for_status()
@@ -94,74 +106,120 @@ def wmo_description(code: int) -> tuple[str, str]:
     return WMO_CODES.get(code, ("Unknown", "🌡️"))
 
 
+def temp_color(t: float) -> str:
+    if t < 0:  return "#aed6f1"
+    if t < 5:  return "#d6eaf8"
+    if t < 10: return "#a9dfbf"
+    if t < 15: return "#fef9e7"
+    if t < 20: return "#fdebd0"
+    if t < 25: return "#fad7a0"
+    return "#f1948a"
+
+
+def wind_compass(degrees: float) -> str:
+    dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+            "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+    return dirs[round(degrees / 22.5) % 16]
+
+
 def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME) -> str:
     daily = data["daily"]
+    hourly = data.get("hourly", {})
     dates = daily["time"]
-    codes = daily["weather_code"]
-    temp_max = daily["temperature_2m_max"]
-    temp_min = daily["temperature_2m_min"]
-    precip = daily["precipitation_sum"]
-    precip_prob = daily["precipitation_probability_max"]
-    wind = daily["wind_speed_10m_max"]
-    uv = daily["uv_index_max"]
-    sunrises = daily["sunrise"]
-    sunsets = daily["sunset"]
-
+    n_days = len(dates)
     generated_at = datetime.now().strftime("%d %b %Y at %H:%M")
 
-    cards_html = ""
-    for i in range(len(dates)):
-        weekday, short_date = format_date(dates[i])
-        desc, emoji = wmo_description(codes[i])
-        is_today = weekday == "Today"
-        card_class = "card today" if is_today else "card"
+    # --- Summary panel (today) ---
+    today_desc, today_emoji = wmo_description(daily["weather_code"][0])
+    today_max = daily["temperature_2m_max"][0]
+    today_min = daily["temperature_2m_min"][0]
+    today_sunrise = format_time(daily["sunrise"][0])
+    today_sunset = format_time(daily["sunset"][0])
+    today_uv = daily["uv_index_max"][0]
 
-        cards_html += f"""
-        <div class="{card_class}">
-            <div class="card-header">
-                <span class="weekday">{weekday}</span>
-                <span class="date">{short_date}</span>
-            </div>
-            <div class="emoji">{emoji}</div>
-            <div class="description">{desc}</div>
-            <div class="temps">
-                <span class="temp-max">{temp_max[i]:.0f}°</span>
-                <span class="temp-min">{temp_min[i]:.0f}°</span>
-            </div>
-            <div class="details">
-                <div class="detail">
-                    <span class="detail-icon">🌧️</span>
-                    <span class="detail-label">Rain</span>
-                    <span class="detail-value">{precip[i]:.1f} mm</span>
-                </div>
-                <div class="detail">
-                    <span class="detail-icon">💧</span>
-                    <span class="detail-label">Prob.</span>
-                    <span class="detail-value">{precip_prob[i]:.0f}%</span>
-                </div>
-                <div class="detail">
-                    <span class="detail-icon">💨</span>
-                    <span class="detail-label">Wind</span>
-                    <span class="detail-value">{wind[i]:.0f} km/h</span>
-                </div>
-                <div class="detail">
-                    <span class="detail-icon">🕶️</span>
-                    <span class="detail-label">UV</span>
-                    <span class="detail-value">{uv[i]:.0f}</span>
-                </div>
-                <div class="detail">
-                    <span class="detail-icon">🌅</span>
-                    <span class="detail-label">Rise</span>
-                    <span class="detail-value">{format_time(sunrises[i])}</span>
-                </div>
-                <div class="detail">
-                    <span class="detail-icon">🌇</span>
-                    <span class="detail-label">Set</span>
-                    <span class="detail-value">{format_time(sunsets[i])}</span>
-                </div>
-            </div>
+    summary_html = f"""
+    <div class="summary">
+        <div class="summary-main">
+            <div class="summary-temp">{today_max:.0f}°<span class="summary-min">/{today_min:.0f}°C</span></div>
+            <div class="summary-desc">{today_emoji} {today_desc}</div>
         </div>
-        """
+        <div class="summary-details">
+            <span>🌅 {today_sunrise}</span>
+            <span>🌇 {today_sunset}</span>
+            <span>🕶️ UV {today_uv:.0f}</span>
+        </div>
+    </div>"""
+
+    # --- Daily strip ---
+    day_cards = ""
+    for i in range(n_days):
+        weekday, short_date = format_date(dates[i])
+        _, emoji = wmo_description(daily["weather_code"][i])
+        tmax = daily["temperature_2m_max"][i]
+        tmin = daily["temperature_2m_min"][i]
+        active = "active" if i == 0 else ""
+        day_cards += f"""
+        <div class="day-card {active}" onclick="selectDay({i})">
+            <div class="day-name">{weekday}</div>
+            <div class="day-date">{short_date}</div>
+            <div class="day-emoji">{emoji}</div>
+            <div class="day-temps"><span class="tmax">{tmax:.0f}°</span><span class="tmin">{tmin:.0f}°</span></div>
+        </div>"""
+
+    # --- Hourly panels (one per day, pre-rendered) ---
+    hourly_panels = ""
+    for day_i in range(n_days):
+        start = day_i * 24
+        end = start + 24
+        h_times = hourly.get("time", [])[start:end]
+
+        active = "active" if day_i == 0 else ""
+
+        if not h_times:
+            hourly_panels += f'<div class="hourly-panel {active}" id="day-{day_i}"></div>'
+            continue
+
+        h_codes   = hourly.get("weather_code", [])[start:end]
+        h_temps   = hourly.get("temperature_2m", [])[start:end]
+        h_precip  = hourly.get("precipitation_probability", [])[start:end]
+        h_wind    = hourly.get("wind_speed_10m", [])[start:end]
+        h_wdir    = hourly.get("wind_direction_10m", [])[start:end]
+        h_gusts   = hourly.get("wind_gusts_10m", [])[start:end]
+        h_humidity = hourly.get("relative_humidity_2m", [])[start:end]
+        h_uv      = hourly.get("uv_index", [])[start:end]
+
+        time_cells    = "".join(f"<th>{t[11:16]}</th>" for t in h_times)
+        symbol_cells  = "".join(f"<td>{wmo_description(c)[1]}</td>" for c in h_codes)
+        precip_cells  = "".join(f"<td>{p:.0f}%</td>" if p is not None else "<td>—</td>" for p in h_precip)
+        temp_cells    = "".join(f'<td style="background:{temp_color(t)}">{t:.0f}°</td>' for t in h_temps)
+        wdir_cells    = "".join(
+            f'<td><div class="wind-arrow" style="transform:rotate({d:.0f}deg)">↑</div>'
+            f'<div class="wind-cmp">{wind_compass(d)}</div></td>'
+            for d in h_wdir
+        )
+        wind_cells    = "".join(f"<td>{w:.0f}</td>" for w in h_wind)
+        gust_cells    = "".join(f"<td>{g:.0f}</td>" for g in h_gusts)
+        humidity_cells = "".join(f"<td>{h:.0f}%</td>" for h in h_humidity)
+        uv_cells      = "".join(f"<td>{u:.0f}</td>" for u in h_uv)
+
+        hourly_panels += f"""
+        <div class="hourly-panel {active}" id="day-{day_i}">
+            <div class="hourly-scroll">
+                <table class="hourly">
+                    <thead><tr><th class="row-label"></th>{time_cells}</tr></thead>
+                    <tbody>
+                        <tr><td class="row-label">Symbol</td>{symbol_cells}</tr>
+                        <tr><td class="row-label">Precip.</td>{precip_cells}</tr>
+                        <tr><td class="row-label">Temp °C</td>{temp_cells}</tr>
+                        <tr><td class="row-label">Wind dir.</td>{wdir_cells}</tr>
+                        <tr><td class="row-label">Wind km/h</td>{wind_cells}</tr>
+                        <tr><td class="row-label">Gusts km/h</td>{gust_cells}</tr>
+                        <tr><td class="row-label">Humidity</td>{humidity_cells}</tr>
+                        <tr><td class="row-label">UV</td>{uv_cells}</tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>"""
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -170,174 +228,131 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME) -> str:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>7-Day Forecast — {location_name}</title>
     <style>
-        *, *::before, *::after {{
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }}
+        *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
 
         body {{
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: Arial, Helvetica, sans-serif;
+            background: #eef2f7;
+            color: #222;
+            padding: 1.5rem 1rem;
             min-height: 100vh;
-            padding: 2rem 1rem;
-            color: #e0e0e0;
-        }}
-
-        header {{
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }}
-
-        header h1 {{
-            font-size: 2rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 0.25rem;
-        }}
-
-        header p {{
-            font-size: 0.9rem;
-            color: #90a4c8;
-        }}
-
-        .grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 1rem;
             max-width: 1200px;
             margin: 0 auto;
         }}
 
-        .card {{
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 1.25rem 1rem;
-            backdrop-filter: blur(10px);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            text-align: center;
-        }}
+        header {{ margin-bottom: 1rem; }}
+        header h1 {{ font-size: 1.4rem; font-weight: 700; color: #1a3c5e; }}
+        .generated {{ font-size: 0.75rem; color: #999; margin-top: 0.2rem; }}
+        .generated a {{ color: #1a6faf; text-decoration: none; }}
+        .generated a:hover {{ text-decoration: underline; }}
 
-        .card:hover {{
-            transform: translateY(-4px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }}
-
-        .card.today {{
-            background: rgba(99, 179, 237, 0.2);
-            border-color: rgba(99, 179, 237, 0.5);
-            box-shadow: 0 0 20px rgba(99, 179, 237, 0.15);
-        }}
-
-        .card-header {{
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
+        /* Summary */
+        .summary {{
+            background: white;
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
             margin-bottom: 0.75rem;
-        }}
-
-        .weekday {{
-            font-weight: 700;
-            font-size: 1rem;
-            color: #ffffff;
-        }}
-
-        .date {{
-            font-size: 0.8rem;
-            color: #90a4c8;
-        }}
-
-        .emoji {{
-            font-size: 2.5rem;
-            line-height: 1;
-            margin: 0.5rem 0;
-        }}
-
-        .description {{
-            font-size: 0.8rem;
-            color: #b0c4de;
-            margin-bottom: 0.75rem;
-            min-height: 2em;
-        }}
-
-        .temps {{
-            display: flex;
-            justify-content: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }}
-
-        .temp-max {{
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #ff9a76;
-        }}
-
-        .temp-min {{
-            font-size: 1.5rem;
-            font-weight: 400;
-            color: #90a4c8;
-        }}
-
-        .details {{
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.4rem 0.5rem;
-            text-align: left;
-        }}
-
-        .detail {{
             display: flex;
             align-items: center;
-            gap: 0.3rem;
-            font-size: 0.75rem;
+            gap: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }}
+        .summary-temp {{ font-size: 2.2rem; font-weight: 700; color: #1a3c5e; }}
+        .summary-min {{ font-size: 1.3rem; color: #999; font-weight: 400; }}
+        .summary-desc {{ font-size: 0.95rem; color: #555; margin-top: 0.2rem; }}
+        .summary-details {{ display: flex; gap: 1.5rem; font-size: 0.9rem; color: #555; }}
 
-        .detail-icon {{
-            font-size: 0.85rem;
+        /* Daily strip */
+        .daily-strip {{
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }}
-
-        .detail-label {{
-            color: #90a4c8;
+        .day-card {{
             flex: 1;
+            padding: 0.7rem 0.4rem;
+            text-align: center;
+            cursor: pointer;
+            border-right: 1px solid #e8e8e8;
+            transition: background 0.1s;
+            user-select: none;
         }}
+        .day-card:last-child {{ border-right: none; }}
+        .day-card:hover {{ background: #f0f4ff; }}
+        .day-card.active {{ background: #1a6faf; color: white; }}
+        .day-card.active .day-date {{ color: rgba(255,255,255,0.75); }}
+        .day-card.active .tmin {{ color: rgba(255,255,255,0.7); }}
+        .day-name {{ font-weight: 700; font-size: 0.85rem; }}
+        .day-date {{ font-size: 0.72rem; color: #999; margin-bottom: 0.3rem; }}
+        .day-emoji {{ font-size: 1.4rem; line-height: 1; margin: 0.25rem 0; }}
+        .tmax {{ font-weight: 700; font-size: 0.85rem; }}
+        .tmin {{ color: #999; font-size: 0.85rem; margin-left: 0.2rem; }}
 
-        .detail-value {{
-            color: #e0e0e0;
-            font-weight: 600;
+        /* Hourly panels */
+        .hourly-panel {{ display: none; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }}
+        .hourly-panel.active {{ display: block; }}
+        .hourly-scroll {{ overflow-x: auto; }}
+
+        table.hourly {{ border-collapse: collapse; white-space: nowrap; }}
+        table.hourly th,
+        table.hourly td {{
+            border: 1px solid #e8e8e8;
+            padding: 0.3rem 0.45rem;
+            text-align: center;
+            font-size: 0.78rem;
         }}
+        table.hourly thead th {{
+            background: #f5f7fa;
+            color: #666;
+            font-weight: normal;
+        }}
+        td.row-label, th.row-label {{
+            background: #f5f7fa;
+            color: #555;
+            font-weight: 600;
+            text-align: right;
+            padding-right: 0.75rem;
+            border-right: 2px solid #ddd;
+            position: sticky;
+            left: 0;
+            z-index: 1;
+        }}
+        th.row-label {{ z-index: 2; }}
+
+        .wind-arrow {{ font-size: 1rem; display: inline-block; line-height: 1; }}
+        .wind-cmp {{ font-size: 0.65rem; color: #777; margin-top: 0.1rem; }}
 
         footer {{
             text-align: center;
-            margin-top: 2.5rem;
-            font-size: 0.8rem;
-            color: #5a7a9a;
-        }}
-
-        footer a {{
-            color: #7aabcc;
-            text-decoration: none;
-        }}
-
-        footer a:hover {{
-            text-decoration: underline;
+            margin-top: 1.5rem;
+            font-size: 0.75rem;
+            color: #999;
         }}
     </style>
 </head>
 <body>
     <header>
         <h1>📍 {location_name}</h1>
-        <p>7-Day Weather Forecast</p>
+        <p class="generated">Generated {generated_at} &mdash; Data from <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
     </header>
 
-    <div class="grid">
-        {cards_html}
+    {summary_html}
+
+    <div class="daily-strip">
+        {day_cards}
     </div>
 
-    <footer>
-        <p>Generated on {generated_at} &mdash; Data from <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
-    </footer>
+    {hourly_panels}
+
+    <script>
+    function selectDay(index) {{
+        document.querySelectorAll('.day-card').forEach((c, i) => c.classList.toggle('active', i === index));
+        document.querySelectorAll('.hourly-panel').forEach((p, i) => p.classList.toggle('active', i === index));
+    }}
+    </script>
 </body>
 </html>"""
 
