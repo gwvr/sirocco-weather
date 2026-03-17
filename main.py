@@ -69,6 +69,21 @@ WMO_CODES = {
 }
 
 
+def fetch_precip_probability(latitude: float, longitude: float, timezone: str, model: str) -> list:
+    """Fetch hourly precipitation_probability from a secondary model."""
+    params = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "timezone": timezone,
+        "forecast_days": 7,
+        "hourly": "precipitation_probability",
+        "models": model,
+    }
+    response = httpx.get(API_URL, params=params, timeout=10)
+    response.raise_for_status()
+    return response.json()["hourly"]["precipitation_probability"]
+
+
 def fetch_forecast(latitude: float, longitude: float, timezone: str, model: str | None = None, wind_units: str = "kmh") -> dict:
     params = {
         "latitude": latitude,
@@ -151,7 +166,7 @@ def wind_compass(degrees: float) -> str:
     return dirs[round(degrees / 22.5) % 16]
 
 
-def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: str | None = None, wind_units: str = "kmh", lat: float = DEFAULT_LATITUDE, lon: float = DEFAULT_LONGITUDE) -> str:
+def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: str | None = None, wind_units: str = "kmh", lat: float = DEFAULT_LATITUDE, lon: float = DEFAULT_LONGITUDE, precip_model: str | None = None) -> str:
     daily = data["daily"]
     hourly = data.get("hourly", {})
     dates = daily["time"]
@@ -414,7 +429,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
     <header>
         <div>
             <h1><a class="map-link" href="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=12" target="_blank">📍</a> {location_name}</h1>
-            <p class="generated">Generated {generated_at} &mdash; Data from {model_label(model)} via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
+            <p class="generated">Generated {generated_at} &mdash; Data from {model_label(model)}{f" &amp; {model_label(precip_model)} (precip.)" if precip_model else ""} via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
         </div>
         <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">Dark mode</button>
     </header>
@@ -492,10 +507,16 @@ def main():
     location_name = args.location_name or loc.get("name", DEFAULT_LOCATION_NAME)
     model = loc.get("model")
     wind_units = loc.get("wind_units", "kmh")
+    precip_model = loc.get("precip_model")
 
     print(f"Fetching 7-day forecast for {location_name}...")
     data = fetch_forecast(lat, lon, timezone, model, wind_units)
-    html = build_html(data, location_name, model, wind_units, lat, lon)
+
+    if precip_model:
+        print(f"Fetching precipitation probability from {precip_model}...")
+        data["hourly"]["precipitation_probability"] = fetch_precip_probability(lat, lon, timezone, precip_model)
+
+    html = build_html(data, location_name, model, wind_units, lat, lon, precip_model)
     output_path = Path(args.output)
     output_path.write_text(html, encoding="utf-8")
     print(f"Forecast written to {output_path.resolve()}")

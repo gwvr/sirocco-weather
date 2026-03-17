@@ -8,6 +8,7 @@ locations:
     timezone: Europe/London
     model: ukmo_seamless
     wind_units: mph
+    precip_model: ecmwf_ifs025
   london:
     name: London, UK
     lat: 51.5074
@@ -15,3 +16,4 @@ locations:
     timezone: Europe/London
     model: ukmo_seamless
     wind_units: mph
+    precip_model: ecmwf_ifs025
