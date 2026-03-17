@@ -147,13 +147,23 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
     n_days = len(dates)
     generated_at = datetime.now().strftime("%d %b %Y at %H:%M")
 
-    # --- Summary panel (today) ---
+    # --- Summary panel (today, remaining hours only) ---
+    current_hour = datetime.now().hour
     today_desc, today_emoji = wmo_description(daily["weather_code"][0])
-    today_max = daily["temperature_2m_max"][0]
-    today_min = daily["temperature_2m_min"][0]
     today_sunrise = format_time(daily["sunrise"][0])
     today_sunset = format_time(daily["sunset"][0])
-    today_uv = daily["uv_index_max"][0]
+
+    if hourly.get("temperature_2m"):
+        remaining = range(current_hour, 24)
+        h_temps = [hourly["temperature_2m"][j] for j in remaining if hourly["temperature_2m"][j] is not None]
+        h_uv    = [hourly["uv_index"][j] for j in remaining if hourly.get("uv_index") and hourly["uv_index"][j] is not None]
+        today_max = max(h_temps) if h_temps else daily["temperature_2m_max"][0]
+        today_min = min(h_temps) if h_temps else daily["temperature_2m_min"][0]
+        today_uv  = max(h_uv) if h_uv else daily["uv_index_max"][0]
+    else:
+        today_max = daily["temperature_2m_max"][0]
+        today_min = daily["temperature_2m_min"][0]
+        today_uv  = daily["uv_index_max"][0]
 
     summary_html = f"""
     <div class="summary">
