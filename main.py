@@ -292,7 +292,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
 
         :root {{
-            --bg:           #eef2f7;
+            --bg:           #d8e2ed;
             --surface:      #ffffff;
             --surface-2:    #f5f7fa;
             --text:         #222222;
@@ -307,7 +307,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 
         @media (prefers-color-scheme: dark) {{ :root {{ --bg:#0f1923; --surface:#1a2535; --surface-2:#1e2d40; --text:#e0e0e0; --text-muted:#7a8fa6; --text-mid:#a0b4c8; --border:#2a3a4f; --border-strong:#3a4f6a; --accent:#2a86d4; --header:#90c4e8; --link:#6ab0e0; }} }}
         [data-theme="dark"]  {{ --bg:#0f1923; --surface:#1a2535; --surface-2:#1e2d40; --text:#e0e0e0; --text-muted:#7a8fa6; --text-mid:#a0b4c8; --border:#2a3a4f; --border-strong:#3a4f6a; --accent:#2a86d4; --header:#90c4e8; --link:#6ab0e0; }}
-        [data-theme="light"] {{ --bg:#eef2f7; --surface:#ffffff; --surface-2:#f5f7fa; --text:#222222; --text-muted:#999999; --text-mid:#555555; --border:#e8e8e8; --border-strong:#dddddd; --accent:#1a6faf; --header:#1a3c5e; --link:#1a6faf; }}
+        [data-theme="light"] {{ --bg:#b8b8b8; --surface:#ffffff; --surface-2:#f5f7fa; --text:#222222; --text-muted:#999999; --text-mid:#555555; --border:#e8e8e8; --border-strong:#dddddd; --accent:#1a6faf; --header:#1a3c5e; --link:#1a6faf; }}
 
         body {{
             font-family: Arial, Helvetica, sans-serif;
@@ -322,7 +322,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 
         header {{ margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: flex-start; }}
         header h1 {{ font-size: 1.4rem; font-weight: 700; color: var(--header); }}
-        .generated {{ font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }}
+        .generated {{ font-size: 0.75rem; color: var(--text-mid); margin-top: 0.2rem; }}
         .generated a {{ color: var(--link); text-decoration: none; }}
         .generated a:hover {{ text-decoration: underline; }}
 
