@@ -418,7 +418,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         .wind-arrow {{ font-size: 1rem; display: inline-block; line-height: 1; }}
         .wind-cmp {{ font-size: 0.65rem; color: var(--text-muted); margin-top: 0.1rem; }}
 
-        a.map-link {{ text-decoration: none; }}
+        a.map-link {{ text-decoration: none; color: inherit; }}
         a.map-link:hover {{ opacity: 0.7; }}
 
         footer {{
@@ -432,7 +432,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 <body>
     <header>
         <div>
-            <h1><a class="map-link" href="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=12" target="_blank">📍</a> {location_name}</h1>
+            <h1><a class="map-link" href="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=12" target="_blank">📍 {location_name}</a></h1>
             <p class="generated">Generated {generated_at} &mdash; Data from {model_label(model)}{f" &amp; {model_label(precip_model)} (precip.)" if precip_model else ""} via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
         </div>
         <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">Dark mode</button>
