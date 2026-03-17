@@ -212,7 +212,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         precip_cells   = "".join(_cell(p, ".0f", "%") for p in h_precip)
         temp_cells     = "".join(f'<td style="background:{temp_color(t)}">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_temps)
         wdir_cells     = "".join(
-            f'<td><div class="wind-arrow" style="transform:rotate({d:.0f}deg)">↑</div>'
+            f'<td><div class="wind-arrow" style="transform:rotate({(d + 180) % 360:.0f}deg)">↑</div>'
             f'<div class="wind-cmp">{wind_compass(d)}</div></td>'
             if d is not None else "<td>—</td>"
             for d in h_wdir
