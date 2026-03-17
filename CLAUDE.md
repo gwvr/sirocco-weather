@@ -55,7 +55,13 @@ The Python version is pinned in `.python-version`. Dependencies are declared in 
 
 ---
 
-## 5. API & Config Notes
+## 5. Issue Tracking (Beads)
+
+@AGENTS.md
+
+---
+
+## 6. API & Config Notes
 
 > _To be filled in once external APIs or configuration are introduced._
 
