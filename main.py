@@ -134,6 +134,17 @@ def temp_color(t: float) -> str:
     return "#f1948a"
 
 
+def uv_color(uv: float) -> str:
+    """WHO UV index band colours, blended 50% with white to mute them."""
+    if uv < 3:  base = (0x29, 0x95, 0x01)  # green
+    elif uv < 6:  base = (0xF7, 0xE4, 0x00)  # yellow
+    elif uv < 8:  base = (0xF1, 0x8B, 0x00)  # orange
+    elif uv < 11: base = (0xE5, 0x32, 0x10)  # red
+    else:         base = (0xB5, 0x67, 0xA4)  # violet
+    r, g, b = ((c + 255 * 3) // 4 for c in base)
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
 def wind_compass(degrees: float) -> str:
     dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
             "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
@@ -231,7 +242,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         wind_cells     = "".join(_cell(w, ".0f") for w in h_wind)
         gust_cells     = "".join(_cell(g, ".0f") for g in h_gusts)
         humidity_cells = "".join(_cell(h, ".0f", "%") for h in h_humidity)
-        uv_cells       = "".join(_cell(u, ".0f") for u in h_uv)
+        uv_cells       = "".join(f'<td style="background:{uv_color(u)}">{u:.0f}</td>' if u is not None else "<td>—</td>" for u in h_uv)
 
         hourly_panels += f"""
         <div class="hourly-panel {active}" id="day-{day_i}">
