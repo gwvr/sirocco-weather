@@ -69,7 +69,7 @@ WMO_CODES = {
 }
 
 
-def fetch_forecast(latitude: float, longitude: float, timezone: str, model: str | None = None) -> dict:
+def fetch_forecast(latitude: float, longitude: float, timezone: str, model: str | None = None, wind_units: str = "kmh") -> dict:
     params = {
         "latitude": latitude,
         "longitude": longitude,
@@ -77,6 +77,7 @@ def fetch_forecast(latitude: float, longitude: float, timezone: str, model: str 
         "forecast_days": 7,
         "daily": ",".join(DAILY_VARIABLES),
         "hourly": ",".join(HOURLY_VARIABLES),
+        "wind_speed_unit": wind_units,
     }
     if model:
         params["models"] = model
@@ -139,7 +140,7 @@ def wind_compass(degrees: float) -> str:
     return dirs[round(degrees / 22.5) % 16]
 
 
-def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: str | None = None) -> str:
+def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: str | None = None, wind_units: str = "kmh") -> str:
     daily = data["daily"]
     hourly = data.get("hourly", {})
     dates = daily["time"]
@@ -231,9 +232,9 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
                         <tr><td class="row-label">Symbol</td>{symbol_cells}</tr>
                         <tr><td class="row-label">Precip.</td>{precip_cells}</tr>
                         <tr><td class="row-label">Temp °C</td>{temp_cells}</tr>
-                        <tr><td class="row-label">Wind dir.</td>{wdir_cells}</tr>
-                        <tr><td class="row-label">Wind km/h</td>{wind_cells}</tr>
-                        <tr><td class="row-label">Gusts km/h</td>{gust_cells}</tr>
+                        <tr><td class="row-label">Wind direction</td>{wdir_cells}</tr>
+                        <tr><td class="row-label">Wind speed ({wind_units})</td>{wind_cells}</tr>
+                        <tr><td class="row-label">Wind gust ({wind_units})</td>{gust_cells}</tr>
                         <tr><td class="row-label">Humidity</td>{humidity_cells}</tr>
                         <tr><td class="row-label">UV</td>{uv_cells}</tr>
                     </tbody>
@@ -413,10 +414,11 @@ def main():
     timezone = args.timezone or loc.get("timezone", DEFAULT_TIMEZONE)
     location_name = args.location_name or loc.get("name", DEFAULT_LOCATION_NAME)
     model = loc.get("model")
+    wind_units = loc.get("wind_units", "kmh")
 
     print(f"Fetching 7-day forecast for {location_name}...")
-    data = fetch_forecast(lat, lon, timezone, model)
-    html = build_html(data, location_name, model)
+    data = fetch_forecast(lat, lon, timezone, model, wind_units)
+    html = build_html(data, location_name, model, wind_units)
     output_path = Path(args.output)
     output_path.write_text(html, encoding="utf-8")
     print(f"Forecast written to {output_path.resolve()}")

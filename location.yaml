@@ -7,9 +7,11 @@ locations:
     lon: -0.35706
     timezone: Europe/London
     model: ukmo_seamless
+    wind_units: mph
   london:
     name: London, UK
     lat: 51.5074
     lon: -0.1278
     timezone: Europe/London
     model: ukmo_seamless
+    wind_units: mph
