@@ -232,7 +232,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 
         symbol_cells   = "".join(f"<td>{wmo_description(c)[1]}</td>" if c is not None else "<td>—</td>" for c in h_codes)
         precip_cells   = "".join(_cell(p, ".0f", "%") for p in h_precip)
-        temp_cells     = "".join(f'<td style="background:{temp_color(t)}">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_temps)
+        temp_cells     = "".join(f'<td style="background:{temp_color(t)};color:#222">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_temps)
         wdir_cells     = "".join(
             f'<td><div class="wind-arrow" style="transform:rotate({(d + 180) % 360:.0f}deg)">↑</div>'
             f'<div class="wind-cmp">{wind_compass(d)}</div></td>'
@@ -242,7 +242,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         wind_cells     = "".join(_cell(w, ".0f") for w in h_wind)
         gust_cells     = "".join(_cell(g, ".0f") for g in h_gusts)
         humidity_cells = "".join(_cell(h, ".0f", "%") for h in h_humidity)
-        uv_cells       = "".join(f'<td style="background:{uv_color(u)}">{u:.0f}</td>' if u is not None else "<td>—</td>" for u in h_uv)
+        uv_cells       = "".join(f'<td style="background:{uv_color(u)};color:#222">{u:.0f}</td>' if u is not None else "<td>—</td>" for u in h_uv)
 
         hourly_panels += f"""
         <div class="hourly-panel {active}" id="day-{day_i}">
@@ -272,25 +272,57 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
     <style>
         *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
 
+        :root {{
+            --bg:           #eef2f7;
+            --surface:      #ffffff;
+            --surface-2:    #f5f7fa;
+            --text:         #222222;
+            --text-muted:   #999999;
+            --text-mid:     #555555;
+            --border:       #e8e8e8;
+            --border-strong:#dddddd;
+            --accent:       #1a6faf;
+            --header:       #1a3c5e;
+            --link:         #1a6faf;
+        }}
+
+        @media (prefers-color-scheme: dark) {{ :root {{ --bg:#0f1923; --surface:#1a2535; --surface-2:#1e2d40; --text:#e0e0e0; --text-muted:#7a8fa6; --text-mid:#a0b4c8; --border:#2a3a4f; --border-strong:#3a4f6a; --accent:#2a86d4; --header:#90c4e8; --link:#6ab0e0; }} }}
+        [data-theme="dark"]  {{ --bg:#0f1923; --surface:#1a2535; --surface-2:#1e2d40; --text:#e0e0e0; --text-muted:#7a8fa6; --text-mid:#a0b4c8; --border:#2a3a4f; --border-strong:#3a4f6a; --accent:#2a86d4; --header:#90c4e8; --link:#6ab0e0; }}
+        [data-theme="light"] {{ --bg:#eef2f7; --surface:#ffffff; --surface-2:#f5f7fa; --text:#222222; --text-muted:#999999; --text-mid:#555555; --border:#e8e8e8; --border-strong:#dddddd; --accent:#1a6faf; --header:#1a3c5e; --link:#1a6faf; }}
+
         body {{
             font-family: Arial, Helvetica, sans-serif;
-            background: #eef2f7;
-            color: #222;
+            background: var(--bg);
+            color: var(--text);
             padding: 1.5rem 1rem;
             min-height: 100vh;
             max-width: 1200px;
             margin: 0 auto;
+            transition: background 0.2s, color 0.2s;
         }}
 
-        header {{ margin-bottom: 1rem; }}
-        header h1 {{ font-size: 1.4rem; font-weight: 700; color: #1a3c5e; }}
-        .generated {{ font-size: 0.75rem; color: #999; margin-top: 0.2rem; }}
-        .generated a {{ color: #1a6faf; text-decoration: none; }}
+        header {{ margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: flex-start; }}
+        header h1 {{ font-size: 1.4rem; font-weight: 700; color: var(--header); }}
+        .generated {{ font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }}
+        .generated a {{ color: var(--link); text-decoration: none; }}
         .generated a:hover {{ text-decoration: underline; }}
+
+        .theme-toggle {{
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+            color: var(--text-mid);
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }}
+        .theme-toggle:hover {{ border-color: var(--accent); color: var(--accent); }}
 
         /* Summary */
         .summary {{
-            background: white;
+            background: var(--surface);
             border-radius: 8px;
             padding: 1rem 1.5rem;
             margin-bottom: 0.75rem;
@@ -299,15 +331,15 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
             gap: 2rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }}
-        .summary-temp {{ font-size: 2.2rem; font-weight: 700; color: #1a3c5e; }}
-        .summary-min {{ font-size: 1.3rem; color: #999; font-weight: 400; }}
-        .summary-desc {{ font-size: 0.95rem; color: #555; margin-top: 0.2rem; }}
-        .summary-details {{ display: flex; gap: 1.5rem; font-size: 0.9rem; color: #555; }}
+        .summary-temp {{ font-size: 2.2rem; font-weight: 700; color: var(--header); }}
+        .summary-min {{ font-size: 1.3rem; color: var(--text-muted); font-weight: 400; }}
+        .summary-desc {{ font-size: 0.95rem; color: var(--text-mid); margin-top: 0.2rem; }}
+        .summary-details {{ display: flex; gap: 1.5rem; font-size: 0.9rem; color: var(--text-mid); }}
 
         /* Daily strip */
         .daily-strip {{
             display: flex;
-            background: white;
+            background: var(--surface);
             border-radius: 8px;
             overflow: hidden;
             margin-bottom: 0.75rem;
@@ -318,46 +350,46 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
             padding: 0.7rem 0.4rem;
             text-align: center;
             cursor: pointer;
-            border-right: 1px solid #e8e8e8;
+            border-right: 1px solid var(--border);
             transition: background 0.1s;
             user-select: none;
         }}
         .day-card:last-child {{ border-right: none; }}
-        .day-card:hover {{ background: #f0f4ff; }}
-        .day-card.active {{ background: #1a6faf; color: white; }}
+        .day-card:hover {{ background: var(--surface-2); }}
+        .day-card.active {{ background: var(--accent); color: white; }}
         .day-card.active .day-date {{ color: rgba(255,255,255,0.75); }}
         .day-card.active .tmin {{ color: rgba(255,255,255,0.7); }}
         .day-name {{ font-weight: 700; font-size: 0.85rem; }}
-        .day-date {{ font-size: 0.72rem; color: #999; margin-bottom: 0.3rem; }}
+        .day-date {{ font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.3rem; }}
         .day-emoji {{ font-size: 1.4rem; line-height: 1; margin: 0.25rem 0; }}
         .tmax {{ font-weight: 700; font-size: 0.85rem; }}
-        .tmin {{ color: #999; font-size: 0.85rem; margin-left: 0.2rem; }}
+        .tmin {{ color: var(--text-muted); font-size: 0.85rem; margin-left: 0.2rem; }}
 
         /* Hourly panels */
-        .hourly-panel {{ display: none; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }}
+        .hourly-panel {{ display: none; background: var(--surface); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }}
         .hourly-panel.active {{ display: block; }}
         .hourly-scroll {{ overflow-x: auto; }}
 
         table.hourly {{ border-collapse: collapse; white-space: nowrap; }}
         table.hourly th,
         table.hourly td {{
-            border: 1px solid #e8e8e8;
+            border: 1px solid var(--border);
             padding: 0.3rem 0.45rem;
             text-align: center;
             font-size: 0.78rem;
         }}
         table.hourly thead th {{
-            background: #f5f7fa;
-            color: #666;
+            background: var(--surface-2);
+            color: var(--text-muted);
             font-weight: normal;
         }}
         td.row-label, th.row-label {{
-            background: #f5f7fa;
-            color: #555;
+            background: var(--surface-2);
+            color: var(--text-mid);
             font-weight: 600;
             text-align: right;
             padding-right: 0.75rem;
-            border-right: 2px solid #ddd;
+            border-right: 2px solid var(--border-strong);
             position: sticky;
             left: 0;
             z-index: 1;
@@ -365,7 +397,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         th.row-label {{ z-index: 2; }}
 
         .wind-arrow {{ font-size: 1rem; display: inline-block; line-height: 1; }}
-        .wind-cmp {{ font-size: 0.65rem; color: #777; margin-top: 0.1rem; }}
+        .wind-cmp {{ font-size: 0.65rem; color: var(--text-muted); margin-top: 0.1rem; }}
 
         a.map-link {{ text-decoration: none; }}
         a.map-link:hover {{ opacity: 0.7; }}
@@ -374,14 +406,17 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
             text-align: center;
             margin-top: 1.5rem;
             font-size: 0.75rem;
-            color: #999;
+            color: var(--text-muted);
         }}
     </style>
 </head>
 <body>
     <header>
-        <h1><a class="map-link" href="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=12" target="_blank">📍</a> {location_name}</h1>
-        <p class="generated">Generated {generated_at} &mdash; Data from {model_label(model)} via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
+        <div>
+            <h1><a class="map-link" href="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=12" target="_blank">📍</a> {location_name}</h1>
+            <p class="generated">Generated {generated_at} &mdash; Data from {model_label(model)} via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">Dark mode</button>
     </header>
 
     {summary_html}
@@ -396,6 +431,24 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
     function selectDay(index) {{
         document.querySelectorAll('.day-card').forEach((c, i) => c.classList.toggle('active', i === index));
         document.querySelectorAll('.hourly-panel').forEach((p, i) => p.classList.toggle('active', i === index));
+    }}
+
+    (function() {{
+        const saved = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const dark = saved ? saved === 'dark' : prefersDark;
+        applyTheme(dark);
+    }})();
+
+    function applyTheme(dark) {{
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        document.getElementById('theme-btn').textContent = dark ? 'Light mode' : 'Dark mode';
+    }}
+
+    function toggleTheme() {{
+        const dark = document.documentElement.getAttribute('data-theme') !== 'dark';
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
+        applyTheme(dark);
     }}
     </script>
 </body>
