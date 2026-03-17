@@ -29,6 +29,7 @@ DAILY_VARIABLES = [
 HOURLY_VARIABLES = [
     "weather_code",
     "temperature_2m",
+    "apparent_temperature",
     "precipitation_probability",
     "wind_speed_10m",
     "wind_direction_10m",
@@ -235,6 +236,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 
         h_codes   = hourly.get("weather_code", [])[start:end]
         h_temps   = hourly.get("temperature_2m", [])[start:end]
+        h_feels   = hourly.get("apparent_temperature", [])[start:end]
         h_precip  = hourly.get("precipitation_probability", [])[start:end]
         h_wind    = hourly.get("wind_speed_10m", [])[start:end]
         h_wdir    = hourly.get("wind_direction_10m", [])[start:end]
@@ -248,6 +250,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         symbol_cells   = "".join(f"<td>{wmo_description(c)[1]}</td>" if c is not None else "<td>—</td>" for c in h_codes)
         precip_cells   = "".join(_cell(p, ".0f", "%") for p in h_precip)
         temp_cells     = "".join(f'<td style="background:{temp_color(t)};color:#222">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_temps)
+        feels_cells    = "".join(f'<td style="background:{temp_color(t)};color:#222">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_feels)
         wdir_cells     = "".join(
             f'<td><div class="wind-arrow" style="transform:rotate({(d + 180) % 360:.0f}deg)">↑</div>'
             f'<div class="wind-cmp">{wind_compass(d)}</div></td>'
@@ -268,6 +271,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
                         <tr><td class="row-label">Symbol</td>{symbol_cells}</tr>
                         <tr><td class="row-label">Precip.</td>{precip_cells}</tr>
                         <tr><td class="row-label">Temp °C</td>{temp_cells}</tr>
+                        <tr><td class="row-label">Feels like °C</td>{feels_cells}</tr>
                         <tr><td class="row-label">Wind direction</td>{wdir_cells}</tr>
                         <tr><td class="row-label">Wind speed ({wind_units})</td>{wind_cells}</tr>
                         <tr><td class="row-label">Wind gust ({wind_units})</td>{gust_cells}</tr>
