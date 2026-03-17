@@ -151,7 +151,7 @@ def wind_compass(degrees: float) -> str:
     return dirs[round(degrees / 22.5) % 16]
 
 
-def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: str | None = None, wind_units: str = "kmh") -> str:
+def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: str | None = None, wind_units: str = "kmh", lat: float = DEFAULT_LATITUDE, lon: float = DEFAULT_LONGITUDE) -> str:
     daily = data["daily"]
     hourly = data.get("hourly", {})
     dates = daily["time"]
@@ -367,6 +367,9 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         .wind-arrow {{ font-size: 1rem; display: inline-block; line-height: 1; }}
         .wind-cmp {{ font-size: 0.65rem; color: #777; margin-top: 0.1rem; }}
 
+        a.map-link {{ text-decoration: none; }}
+        a.map-link:hover {{ opacity: 0.7; }}
+
         footer {{
             text-align: center;
             margin-top: 1.5rem;
@@ -377,7 +380,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 </head>
 <body>
     <header>
-        <h1>📍 {location_name}</h1>
+        <h1><a class="map-link" href="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=12" target="_blank">📍</a> {location_name}</h1>
         <p class="generated">Generated {generated_at} &mdash; Data from {model_label(model)} via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
     </header>
 
@@ -439,7 +442,7 @@ def main():
 
     print(f"Fetching 7-day forecast for {location_name}...")
     data = fetch_forecast(lat, lon, timezone, model, wind_units)
-    html = build_html(data, location_name, model, wind_units)
+    html = build_html(data, location_name, model, wind_units, lat, lon)
     output_path = Path(args.output)
     output_path.write_text(html, encoding="utf-8")
     print(f"Forecast written to {output_path.resolve()}")
