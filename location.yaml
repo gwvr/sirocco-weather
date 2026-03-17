@@ -1,0 +1,13 @@
+default: harpenden
+
+locations:
+  harpenden:
+    name: Harpenden, UK
+    lat: 51.81684
+    lon: -0.35706
+    timezone: Europe/London
+  london:
+    name: London, UK
+    lat: 51.5074
+    lon: -0.1278
+    timezone: Europe/London
