@@ -38,6 +38,40 @@ HOURLY_VARIABLES = [
     "uv_index",
 ]
 
+METEOCON_BASE = "https://bmcdn.nl/assets/weather-icons/v3.0/fill/svg"
+
+# Maps WMO code -> (day icon name, night icon name) for Meteocons
+METEOCON_ICONS = {
+    0:  ("clear-day",                       "clear-night"),
+    1:  ("partly-cloudy-day",               "partly-cloudy-night"),
+    2:  ("partly-cloudy-day",               "partly-cloudy-night"),
+    3:  ("overcast-day",                    "overcast-night"),
+    45: ("fog-day",                         "fog-night"),
+    48: ("fog-day",                         "fog-night"),
+    51: ("partly-cloudy-day-drizzle",       "partly-cloudy-night-drizzle"),
+    53: ("drizzle",                         "drizzle"),
+    55: ("overcast-drizzle",                "overcast-drizzle"),
+    56: ("partly-cloudy-day-sleet",         "partly-cloudy-night-sleet"),
+    57: ("overcast-day-sleet",              "overcast-night-sleet"),
+    61: ("partly-cloudy-day-rain",          "partly-cloudy-night-rain"),
+    63: ("rain",                            "rain"),
+    65: ("overcast-rain",                   "overcast-rain"),
+    66: ("partly-cloudy-day-sleet",         "partly-cloudy-night-sleet"),
+    67: ("overcast-day-sleet",              "overcast-night-sleet"),
+    71: ("partly-cloudy-day-snow",          "partly-cloudy-night-snow"),
+    73: ("snow",                            "snow"),
+    75: ("overcast-snow",                   "overcast-snow"),
+    77: ("partly-cloudy-day-snow",          "partly-cloudy-night-snow"),
+    80: ("partly-cloudy-day-rain",          "partly-cloudy-night-rain"),
+    81: ("partly-cloudy-day-rain",          "partly-cloudy-night-rain"),
+    82: ("overcast-rain",                   "overcast-rain"),
+    85: ("partly-cloudy-day-snow",          "partly-cloudy-night-snow"),
+    86: ("overcast-day-snow",               "overcast-night-snow"),
+    95: ("thunderstorms-day",               "thunderstorms-night"),
+    96: ("thunderstorms-day-rain",          "thunderstorms-night-rain"),
+    99: ("thunderstorms-day-overcast-rain", "thunderstorms-night-overcast-rain"),
+}
+
 WMO_CODES = {
     0: ("Clear Sky", "☀️"),
     1: ("Mainly Clear", "🌤️"),
@@ -161,13 +195,25 @@ def uv_color(uv: float) -> str:
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
+def weather_icon_html(wmo_code: int, is_day: bool = True, size: int = 32, use_meteocons: bool = True) -> str:
+    """Return an <img> tag for Meteocons, or emoji if use_meteocons is False / code is unknown."""
+    _, emoji = wmo_description(wmo_code)
+    if not use_meteocons:
+        return emoji
+    icons = METEOCON_ICONS.get(wmo_code)
+    if not icons:
+        return emoji
+    name = icons[0] if is_day else icons[1]
+    return f'<img class="weather-icon" src="{METEOCON_BASE}/{name}.svg" alt="{emoji}" width="{size}" height="{size}">'
+
+
 def wind_compass(degrees: float) -> str:
     dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
             "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
     return dirs[round(degrees / 22.5) % 16]
 
 
-def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: str | None = None, wind_units: str = "kmh", lat: float = DEFAULT_LATITUDE, lon: float = DEFAULT_LONGITUDE, precip_model: str | None = None) -> str:
+def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: str | None = None, wind_units: str = "kmh", lat: float = DEFAULT_LATITUDE, lon: float = DEFAULT_LONGITUDE, precip_model: str | None = None, icons: str = "meteocons") -> str:
     daily = data["daily"]
     hourly = data.get("hourly", {})
     dates = daily["time"]
@@ -176,9 +222,13 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 
     # --- Summary panel (today, remaining hours only) ---
     current_hour = datetime.now().hour
-    today_desc, today_emoji = wmo_description(daily["weather_code"][0])
+    today_desc, _ = wmo_description(daily["weather_code"][0])
     today_sunrise = format_time(daily["sunrise"][0])
     today_sunset = format_time(daily["sunset"][0])
+    use_meteocons = (icons == "meteocons")
+    now_hm = datetime.now().strftime("%H:%M")
+    is_day_now = daily["sunrise"][0][11:16] <= now_hm <= daily["sunset"][0][11:16]
+    today_icon = weather_icon_html(daily["weather_code"][0], is_day=is_day_now, size=48, use_meteocons=use_meteocons)
 
     if hourly.get("temperature_2m"):
         remaining = range(current_hour, 24)
@@ -196,7 +246,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
     <div class="summary">
         <div class="summary-main">
             <div class="summary-temp">{today_max:.0f}°<span class="summary-min">/{today_min:.0f}°C</span></div>
-            <div class="summary-desc">{today_emoji} {today_desc}</div>
+            <div class="summary-desc">{today_icon} {today_desc}</div>
         </div>
         <div class="summary-details">
             <span>🌅 {today_sunrise}</span>
@@ -209,7 +259,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
     day_cards = ""
     for i in range(n_days):
         weekday, short_date = format_date(dates[i])
-        _, emoji = wmo_description(daily["weather_code"][i])
+        day_icon = weather_icon_html(daily["weather_code"][i], is_day=True, size=36, use_meteocons=use_meteocons)
         tmax = daily["temperature_2m_max"][i]
         tmin = daily["temperature_2m_min"][i]
         active = "active" if i == 0 else ""
@@ -217,7 +267,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         <div class="day-card {active}" onclick="selectDay({i})">
             <div class="day-name">{weekday}</div>
             <div class="day-date">{short_date}</div>
-            <div class="day-emoji">{emoji}</div>
+            <div class="day-emoji">{day_icon}</div>
             <div class="day-temps"><span class="tmax">{tmax:.0f}°</span><span class="tmin">{tmin:.0f}°</span></div>
         </div>"""
 
@@ -234,6 +284,9 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
             hourly_panels += f'<div class="hourly-panel {active}" id="day-{day_i}"></div>'
             continue
 
+        sunrise_hm = daily["sunrise"][day_i][11:16]
+        sunset_hm  = daily["sunset"][day_i][11:16]
+
         h_codes   = hourly.get("weather_code", [])[start:end]
         h_temps   = hourly.get("temperature_2m", [])[start:end]
         h_feels   = hourly.get("apparent_temperature", [])[start:end]
@@ -247,7 +300,11 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         time_cells    = "".join(f"<th>{t[11:16]}</th>" for t in h_times)
         def _cell(v, fmt_str, suffix=""): return f"<td>{format(v, fmt_str)}{suffix}</td>" if v is not None else "<td>—</td>"
 
-        symbol_cells   = "".join(f"<td>{wmo_description(c)[1]}</td>" if c is not None else "<td>—</td>" for c in h_codes)
+        symbol_cells   = "".join(
+            f'<td>{weather_icon_html(c, is_day=sunrise_hm <= t[11:16] <= sunset_hm, size=24, use_meteocons=use_meteocons)}</td>'
+            if c is not None else "<td>—</td>"
+            for c, t in zip(h_codes, h_times)
+        )
         precip_cells   = "".join(_cell(p, ".0f", "%") for p in h_precip)
         temp_cells     = "".join(f'<td style="background:{temp_color(t)};color:#222">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_temps)
         feels_cells    = "".join(f'<td style="background:{temp_color(t)};color:#222">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_feels)
@@ -415,6 +472,9 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         }}
         th.row-label {{ z-index: 2; }}
 
+        .weather-icon {{ display: block; margin: 0 auto; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4)); }}
+        .summary-desc .weather-icon {{ display: inline; vertical-align: middle; }}
+
         .wind-arrow {{ font-size: 1rem; display: inline-block; line-height: 1; }}
         .wind-cmp {{ font-size: 0.65rem; color: var(--text-muted); margin-top: 0.1rem; }}
 
@@ -488,6 +548,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--timezone")
     parser.add_argument("--name", metavar="NAME", dest="location_name")
     parser.add_argument("--output", default=OUTPUT_FILE, metavar="FILE")
+    parser.add_argument("--icons", default="meteocons", choices=["meteocons", "emoji"],
+                        help="Icon set to use (default: meteocons)")
     return parser.parse_args()
 
 
@@ -520,7 +582,8 @@ def main():
         print(f"Fetching precipitation probability from {precip_model}...")
         data["hourly"]["precipitation_probability"] = fetch_precip_probability(lat, lon, timezone, precip_model)
 
-    html = build_html(data, location_name, model, wind_units, lat, lon, precip_model)
+    icons = loc.get("icons", args.icons)
+    html = build_html(data, location_name, model, wind_units, lat, lon, precip_model, icons)
     output_path = Path(args.output)
     output_path.write_text(html, encoding="utf-8")
     print(f"Forecast written to {output_path.resolve()}")
