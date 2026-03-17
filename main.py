@@ -69,7 +69,7 @@ WMO_CODES = {
 }
 
 
-def fetch_forecast(latitude: float, longitude: float, timezone: str) -> dict:
+def fetch_forecast(latitude: float, longitude: float, timezone: str, model: str | None = None) -> dict:
     params = {
         "latitude": latitude,
         "longitude": longitude,
@@ -78,6 +78,8 @@ def fetch_forecast(latitude: float, longitude: float, timezone: str) -> dict:
         "daily": ",".join(DAILY_VARIABLES),
         "hourly": ",".join(HOURLY_VARIABLES),
     }
+    if model:
+        params["models"] = model
     response = httpx.get(API_URL, params=params, timeout=10)
     response.raise_for_status()
     return response.json()
@@ -106,6 +108,21 @@ def wmo_description(code: int) -> tuple[str, str]:
     return WMO_CODES.get(code, ("Unknown", "🌡️"))
 
 
+MODEL_LABELS = {
+    "ukmo_seamless":           "UK Met Office",
+    "ukmo_global":             "UK Met Office",
+    "ukmo_uk_deterministic":   "UK Met Office",
+    "ecmwf_ifs025":            "ECMWF",
+    "ecmwf_ifs04":             "ECMWF",
+    "ecmwf_aifs025":           "ECMWF",
+}
+
+def model_label(model: str | None) -> str:
+    if model is None:
+        return "ECMWF"
+    return MODEL_LABELS.get(model, model)
+
+
 def temp_color(t: float) -> str:
     if t < 0:  return "#aed6f1"
     if t < 5:  return "#d6eaf8"
@@ -122,7 +139,7 @@ def wind_compass(degrees: float) -> str:
     return dirs[round(degrees / 22.5) % 16]
 
 
-def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME) -> str:
+def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: str | None = None) -> str:
     daily = data["daily"]
     hourly = data.get("hourly", {})
     dates = daily["time"]
@@ -189,18 +206,21 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME) -> str:
         h_uv      = hourly.get("uv_index", [])[start:end]
 
         time_cells    = "".join(f"<th>{t[11:16]}</th>" for t in h_times)
-        symbol_cells  = "".join(f"<td>{wmo_description(c)[1]}</td>" for c in h_codes)
-        precip_cells  = "".join(f"<td>{p:.0f}%</td>" if p is not None else "<td>—</td>" for p in h_precip)
-        temp_cells    = "".join(f'<td style="background:{temp_color(t)}">{t:.0f}°</td>' for t in h_temps)
-        wdir_cells    = "".join(
+        def _cell(v, fmt_str, suffix=""): return f"<td>{format(v, fmt_str)}{suffix}</td>" if v is not None else "<td>—</td>"
+
+        symbol_cells   = "".join(f"<td>{wmo_description(c)[1]}</td>" if c is not None else "<td>—</td>" for c in h_codes)
+        precip_cells   = "".join(_cell(p, ".0f", "%") for p in h_precip)
+        temp_cells     = "".join(f'<td style="background:{temp_color(t)}">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_temps)
+        wdir_cells     = "".join(
             f'<td><div class="wind-arrow" style="transform:rotate({d:.0f}deg)">↑</div>'
             f'<div class="wind-cmp">{wind_compass(d)}</div></td>'
+            if d is not None else "<td>—</td>"
             for d in h_wdir
         )
-        wind_cells    = "".join(f"<td>{w:.0f}</td>" for w in h_wind)
-        gust_cells    = "".join(f"<td>{g:.0f}</td>" for g in h_gusts)
-        humidity_cells = "".join(f"<td>{h:.0f}%</td>" for h in h_humidity)
-        uv_cells      = "".join(f"<td>{u:.0f}</td>" for u in h_uv)
+        wind_cells     = "".join(_cell(w, ".0f") for w in h_wind)
+        gust_cells     = "".join(_cell(g, ".0f") for g in h_gusts)
+        humidity_cells = "".join(_cell(h, ".0f", "%") for h in h_humidity)
+        uv_cells       = "".join(_cell(u, ".0f") for u in h_uv)
 
         hourly_panels += f"""
         <div class="hourly-panel {active}" id="day-{day_i}">
@@ -336,7 +356,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME) -> str:
 <body>
     <header>
         <h1>📍 {location_name}</h1>
-        <p class="generated">Generated {generated_at} &mdash; Data from <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
+        <p class="generated">Generated {generated_at} &mdash; Data from {model_label(model)} via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
     </header>
 
     {summary_html}
@@ -392,10 +412,11 @@ def main():
     lon = args.lon or loc.get("lon", DEFAULT_LONGITUDE)
     timezone = args.timezone or loc.get("timezone", DEFAULT_TIMEZONE)
     location_name = args.location_name or loc.get("name", DEFAULT_LOCATION_NAME)
+    model = loc.get("model")
 
     print(f"Fetching 7-day forecast for {location_name}...")
-    data = fetch_forecast(lat, lon, timezone)
-    html = build_html(data, location_name)
+    data = fetch_forecast(lat, lon, timezone, model)
+    html = build_html(data, location_name, model)
     output_path = Path(args.output)
     output_path.write_text(html, encoding="utf-8")
     print(f"Forecast written to {output_path.resolve()}")
