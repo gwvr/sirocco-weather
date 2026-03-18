@@ -26,7 +26,7 @@ def test_format_date_tomorrow():
         mock_dt.strptime.side_effect = lambda s, f: __import__("datetime").datetime.strptime(s, f)
         mock_dt.now.return_value = today_dt
         label, short = format_date(tomorrow.strftime("%Y-%m-%d"))
-    assert label == "Tomorrow"
+    assert label == tomorrow.strftime("%A")
 
 
 def test_format_date_weekday():

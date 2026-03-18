@@ -148,8 +148,6 @@ def format_date(date_str: str) -> tuple[str, str]:
     today = datetime.now().date()
     if dt.date() == today:
         label = "Today"
-    elif (dt.date() - today).days == 1:
-        label = "Tomorrow"
     else:
         label = dt.strftime("%A")
     return label, dt.strftime("%-d %b")
