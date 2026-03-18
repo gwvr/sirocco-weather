@@ -230,7 +230,8 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
     use_meteocons = (icons == "meteocons")
     now_hm = datetime.now().strftime("%H:%M")
     is_day_now = daily["sunrise"][0][11:16] <= now_hm <= daily["sunset"][0][11:16]
-    today_icon = weather_icon_html(daily["weather_code"][0], is_day=is_day_now, size=48, use_meteocons=use_meteocons)
+    today_code = daily["weather_code"][0]
+    today_icon = weather_icon_html(today_code, is_day=is_day_now, size=48, use_meteocons=use_meteocons) if today_code is not None else ""
 
     if hourly.get("temperature_2m"):
         remaining = range(current_hour, 24)
@@ -261,7 +262,8 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
     day_cards = ""
     for i in range(n_days):
         weekday, short_date = format_date(dates[i])
-        day_icon = weather_icon_html(daily["weather_code"][i], is_day=True, size=36, use_meteocons=use_meteocons)
+        code = daily["weather_code"][i]
+        day_icon = weather_icon_html(code, is_day=True, size=36, use_meteocons=use_meteocons) if code is not None else ""
         tmax = daily["temperature_2m_max"][i]
         tmin = daily["temperature_2m_min"][i]
         active = "active" if i == 0 else ""
