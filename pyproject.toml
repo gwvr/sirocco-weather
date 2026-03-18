@@ -20,6 +20,17 @@ sirocco = "sirocco.cli:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/sirocco"]
 
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = [
+    "E501",  # line too long — HTML-generating f-strings are inherently long
+    "E701",  # compact if/else on one line is intentional in colour lookup tables
+]
+
 [tool.pytest.ini_options]
 addopts = "--cov=sirocco --cov-report=term"
 testpaths = ["tests"]
@@ -28,4 +39,5 @@ testpaths = ["tests"]
 dev = [
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
+    "ruff>=0.15.6",
 ]
