@@ -16,6 +16,9 @@ wheels/
 # Test artefacts
 .coverage
 
+# Personal location config (copy location.yaml.example to location.yaml)
+location.yaml
+
 # Generated output
 forecast.html
 !templates/*.html

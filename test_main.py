@@ -86,7 +86,7 @@ def _minimal_forecast():
 
 def test_build_html_contains_location():
     html = build_html(_minimal_forecast())
-    assert "Harpenden, UK" in html
+    assert "London, UK" in html
 
 
 def test_build_html_contains_weather_description():
