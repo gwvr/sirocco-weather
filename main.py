@@ -175,13 +175,17 @@ def model_label(model: str | None) -> str:
 
 
 def temp_color(t: float) -> str:
-    if t < 0:  return "#aed6f1"
-    if t < 5:  return "#d6eaf8"
-    if t < 10: return "#a9dfbf"
-    if t < 15: return "#fef9e7"
-    if t < 20: return "#fdebd0"
-    if t < 25: return "#fad7a0"
-    return "#f1948a"
+    if t < -10: return "#7f8db8"
+    if t < -5:  return "#bbc2d9"
+    if t < 0:   return "#eaedf3"
+    if t < 5:   return "#fff1ca"
+    if t < 10:  return "#ffeaac"
+    if t < 15:  return "#ffd765"
+    if t < 20:  return "#ffbd56"
+    if t < 25:  return "#ffa447"
+    if t < 30:  return "#ff8a39"
+    if t < 35:  return "#f36233"
+    return "#de2e33"
 
 
 def uv_color(uv: float) -> str:
@@ -268,7 +272,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
             <div class="day-name">{weekday}</div>
             <div class="day-date">{short_date}</div>
             <div class="day-emoji">{day_icon}</div>
-            <div class="day-temps"><span class="tmax">{tmax:.0f}°</span><span class="tmin">{tmin:.0f}°</span></div>
+            <div class="day-temps"><span class="tmax">{f"{tmax:.0f}°" if tmax is not None else "—"}</span><span class="tmin">{f"{tmin:.0f}°" if tmin is not None else "—"}</span></div>
         </div>"""
 
     # --- Hourly panels (one per day, pre-rendered) ---
