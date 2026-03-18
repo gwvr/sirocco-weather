@@ -158,8 +158,9 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 
     hourly_panels = ""
     for day_i in range(n_days):
-        start = day_i * 24
-        end = start + 24
+        day_start = day_i * 24
+        start = day_start + (current_hour if day_i == 0 else 0)
+        end = day_start + 24
         h_times = hourly.get("time", [])[start:end]
 
         active = "active" if day_i == 0 else ""
