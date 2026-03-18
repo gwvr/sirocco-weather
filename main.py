@@ -277,6 +277,8 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         </div>"""
 
     # --- Hourly panels (one per day, pre-rendered) ---
+    def _cell(v, fmt_str, suffix=""): return f"<td>{format(v, fmt_str)}{suffix}</td>" if v is not None else "<td>—</td>"
+
     hourly_panels = ""
     for day_i in range(n_days):
         start = day_i * 24
@@ -303,8 +305,6 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         h_uv      = hourly.get("uv_index", [])[start:end]
 
         time_cells    = "".join(f"<th>{t[11:16]}</th>" for t in h_times)
-        def _cell(v, fmt_str, suffix=""): return f"<td>{format(v, fmt_str)}{suffix}</td>" if v is not None else "<td>—</td>"
-
         symbol_cells   = "".join(
             f'<td>{weather_icon_html(c, is_day=sunrise_hm <= t[11:16] <= sunset_hm, size=20, use_meteocons=use_meteocons)}</td>'
             if c is not None else "<td>—</td>"
@@ -349,7 +349,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>7-Day Forecast — {location_name}</title>
+    <title>Forecast — {location_name}</title>
     <style>
         *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
 
@@ -546,7 +546,7 @@ def load_config(path: str) -> dict:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Fetch and display a 7-day weather forecast.")
+    parser = argparse.ArgumentParser(description="Fetch and display a weather forecast.")
     parser.add_argument("--config", metavar="FILE", help="YAML config file with named locations")
     parser.add_argument("--location", metavar="KEY", help="Location key from config file")
     parser.add_argument("--lat", type=float, metavar="LATITUDE")
@@ -582,7 +582,7 @@ def main():
     wind_units = loc.get("wind_units", "kmh")
     precip_model = loc.get("precip_model")
 
-    print(f"Fetching 7-day forecast for {location_name}...")
+    print(f"Fetching forecast for {location_name}...")
     data = fetch_forecast(lat, lon, timezone, model, wind_units)
 
     if precip_model:
