@@ -51,28 +51,27 @@ def model_label(model: str | None) -> str:
 
 
 def temp_color(t: float) -> str:
-    if t < -10: return "#7f8db8"
-    if t < -5:  return "#bbc2d9"
-    if t < 0:   return "#eaedf3"
-    if t < 5:   return "#fff1ca"
-    if t < 10:  return "#ffeaac"
-    if t < 15:  return "#ffd765"
-    if t < 20:  return "#ffbd56"
-    if t < 25:  return "#ffa447"
-    if t < 30:  return "#ff8a39"
-    if t < 35:  return "#f36233"
-    return "#de2e33"
+    """Return a CSS class name for the temperature band."""
+    if t < -10: return "tc-0"
+    if t < -5:  return "tc-1"
+    if t < 0:   return "tc-2"
+    if t < 5:   return "tc-3"
+    if t < 10:  return "tc-4"
+    if t < 15:  return "tc-5"
+    if t < 20:  return "tc-6"
+    if t < 25:  return "tc-7"
+    if t < 30:  return "tc-8"
+    if t < 35:  return "tc-9"
+    return "tc-10"
 
 
 def uv_color(uv: float) -> str:
-    """WHO UV index band colours, blended 50% with white to mute them."""
-    if uv < 3:  base = (0x29, 0x95, 0x01)  # green
-    elif uv < 6:  base = (0xF7, 0xE4, 0x00)  # yellow
-    elif uv < 8:  base = (0xF1, 0x8B, 0x00)  # orange
-    elif uv < 11: base = (0xE5, 0x32, 0x10)  # red
-    else:         base = (0xB5, 0x67, 0xA4)  # violet
-    r, g, b = ((c + 255 * 3) // 4 for c in base)
-    return f"#{r:02x}{g:02x}{b:02x}"
+    """Return a CSS class name for the WHO UV index band."""
+    if uv < 3:  return "uvc-0"   # green
+    if uv < 6:  return "uvc-1"   # yellow
+    if uv < 8:  return "uvc-2"   # orange
+    if uv < 11: return "uvc-3"   # red
+    return "uvc-4"                # violet
 
 
 def weather_icon_html(wmo_code: int, is_day: bool = True, size: int = 32, use_meteocons: bool = True) -> str:
@@ -189,8 +188,8 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
             for c, t in zip(h_codes, h_times)
         )
         precip_cells   = "".join(_cell(p, ".0f", "%") for p in h_precip)
-        temp_cells     = "".join(f'<td style="background:{temp_color(t)};color:#222">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_temps)
-        feels_cells    = "".join(f'<td style="background:{temp_color(t)};color:#222">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_feels)
+        temp_cells     = "".join(f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_temps)
+        feels_cells    = "".join(f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_feels)
         wdir_cells     = "".join(
             f'<td><div class="wind-arrow" style="transform:rotate({(d + 180) % 360:.0f}deg)">↑</div>'
             f'<div class="wind-cmp">{wind_compass(d)}</div></td>'
@@ -200,7 +199,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         wind_cells     = "".join(_cell(w, ".0f") for w in h_wind)
         gust_cells     = "".join(_cell(g, ".0f") for g in h_gusts)
         humidity_cells = "".join(_cell(h, ".0f", "%") for h in h_humidity)
-        uv_cells       = "".join(f'<td style="background:{uv_color(u)};color:#222">{u:.0f}</td>' if u is not None else "<td>—</td>" for u in h_uv)
+        uv_cells       = "".join(f'<td class="{uv_color(u)} tinted">{u:.0f}</td>' if u is not None else "<td>—</td>" for u in h_uv)
 
         hourly_panels += f"""
         <div class="hourly-panel {active}" id="day-{day_i}">
