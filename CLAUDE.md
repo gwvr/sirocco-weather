@@ -2,11 +2,11 @@
 
 ## 1. Project Overview
 
-**Weather** is a work-in-progress Python application for fetching and displaying weather data.
+**Sirocco** is a work-in-progress Python application for fetching and displaying weather data.
 
 - **Status:** Early development / work in progress
 - **Entry point:** `main.py`
-- **Package name:** `weather` (see `pyproject.toml`)
+- **Package name:** `sirocco-weather` (see `pyproject.toml`)
 - **Version:** `0.1.0`
 
 ---

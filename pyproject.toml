@@ -1,7 +1,7 @@
 [project]
-name = "weather"
+name = "sirocco-weather"
 version = "0.1.0"
-description = "Fetches and displays a 7-day weather forecast as a styled HTML page"
+description = "A lot of hot air — fetches and displays a weather forecast as a styled HTML page"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
