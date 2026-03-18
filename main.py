@@ -4,6 +4,17 @@ import yaml
 from datetime import datetime
 from pathlib import Path
 
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+_env = Environment(
+    loader=FileSystemLoader(Path(__file__).parent / "templates"),
+    variable_start_string="[[",
+    variable_end_string="]]",
+    block_start_string="[%",
+    block_end_string="%]",
+    autoescape=select_autoescape(["html"]),
+)
+
 OUTPUT_FILE = "forecast.html"
 
 # Defaults: Harpenden, UK
@@ -344,200 +355,18 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
             </div>
         </div>"""
 
-    return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forecast — {location_name}</title>
-    <style>
-        *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-
-        :root {{
-            --bg:           #d8e2ed;
-            --surface:      #ffffff;
-            --surface-2:    #f5f7fa;
-            --text:         #222222;
-            --text-muted:   #999999;
-            --text-mid:     #555555;
-            --border:       #e8e8e8;
-            --border-strong:#dddddd;
-            --accent:       #1a6faf;
-            --header:       #1a3c5e;
-            --link:         #1a6faf;
-        }}
-
-        @media (prefers-color-scheme: dark) {{ :root {{ --bg:#0f1923; --surface:#1a2535; --surface-2:#1e2d40; --text:#e0e0e0; --text-muted:#888888; --text-mid:#aaaaaa; --border:#2a3a4f; --border-strong:#3a4f6a; --accent:#2a86d4; --header:#cccccc; --link:#6ab0e0; }} }}
-        [data-theme="dark"]  {{ --bg:#0f1923; --surface:#1a2535; --surface-2:#1e2d40; --text:#e0e0e0; --text-muted:#888888; --text-mid:#aaaaaa; --border:#2a3a4f; --border-strong:#3a4f6a; --accent:#2a86d4; --header:#cccccc; --link:#6ab0e0; }}
-        [data-theme="light"] {{ --bg:#b8b8b8; --surface:#ffffff; --surface-2:#f5f7fa; --text:#222222; --text-muted:#999999; --text-mid:#555555; --border:#e8e8e8; --border-strong:#dddddd; --accent:#1a6faf; --header:#1a3c5e; --link:#1a6faf; }}
-
-        body {{
-            font-family: Arial, Helvetica, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 1.5rem 1rem;
-            min-height: 100vh;
-            max-width: 1200px;
-            margin: 0 auto;
-            transition: background 0.2s, color 0.2s;
-        }}
-
-        header {{ margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: flex-start; }}
-        header h1 {{ font-size: 1.4rem; font-weight: 700; color: var(--header); }}
-        .generated {{ font-size: 0.75rem; color: var(--text-mid); margin-top: 0.2rem; }}
-        .generated a {{ color: var(--link); text-decoration: none; }}
-        .generated a:hover {{ text-decoration: underline; }}
-
-        .theme-toggle {{
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 0.3rem 0.6rem;
-            font-size: 0.8rem;
-            color: var(--text-mid);
-            cursor: pointer;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }}
-        .theme-toggle:hover {{ border-color: var(--accent); color: var(--accent); }}
-
-        /* Summary */
-        .summary {{
-            background: var(--surface);
-            border-radius: 8px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }}
-        .summary-left {{ display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }}
-        .summary-temp {{ font-size: 2.2rem; font-weight: 700; color: var(--header); }}
-        .summary-min {{ font-size: 1.3rem; color: var(--text-muted); font-weight: 400; }}
-        .summary-desc {{ font-size: 0.95rem; color: var(--text-mid); text-align: center; }}
-        .summary-details {{ display: flex; gap: 1.5rem; font-size: 0.9rem; color: var(--text-mid); }}
-
-        /* Daily strip */
-        .daily-strip {{
-            display: flex;
-            background: var(--surface);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }}
-        .day-card {{
-            flex: 1;
-            padding: 0.7rem 0.4rem;
-            text-align: center;
-            cursor: pointer;
-            border-right: 1px solid var(--border);
-            transition: background 0.1s;
-            user-select: none;
-        }}
-        .day-card:last-child {{ border-right: none; }}
-        .day-card:hover {{ background: var(--surface-2); }}
-        .day-card.active {{ background: var(--accent); color: white; }}
-        .day-card.active .day-date {{ color: rgba(255,255,255,0.75); }}
-        .day-card.active .tmin {{ color: rgba(255,255,255,0.7); }}
-        .day-name {{ font-weight: 700; font-size: 0.85rem; }}
-        .day-date {{ font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.3rem; }}
-        .day-emoji {{ font-size: 1.4rem; line-height: 1; margin: 0.25rem 0; }}
-        .tmax {{ font-weight: 700; font-size: 0.85rem; }}
-        .tmin {{ color: var(--text-muted); font-size: 0.85rem; margin-left: 0.2rem; }}
-
-        /* Hourly panels */
-        .hourly-panel {{ display: none; background: var(--surface); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }}
-        .hourly-panel.active {{ display: block; }}
-        .hourly-scroll {{ overflow-x: auto; }}
-
-        table.hourly {{ border-collapse: collapse; white-space: nowrap; width: 100%; }}
-        table.hourly th,
-        table.hourly td {{
-            border: 1px solid var(--border);
-            padding: 0.25rem 0.28rem;
-            text-align: center;
-            font-size: 0.74rem;
-        }}
-        table.hourly thead th {{
-            background: var(--surface-2);
-            color: var(--text-mid);
-            font-weight: normal;
-        }}
-        td.row-label, th.row-label {{
-            background: var(--surface-2);
-            color: var(--text-mid);
-            font-weight: 600;
-            text-align: right;
-            padding-right: 0.5rem;
-            border-right: 2px solid var(--border-strong);
-            position: sticky;
-            left: 0;
-            z-index: 1;
-        }}
-        th.row-label {{ z-index: 2; }}
-
-        .weather-icon {{ display: block; margin: 0 auto; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4)); }}
-        .summary-icon {{ line-height: 1; }}
-
-        .wind-arrow {{ font-size: 1rem; display: inline-block; line-height: 1; }}
-        .wind-cmp {{ font-size: 0.65rem; color: var(--text-muted); margin-top: 0.1rem; }}
-
-        a.map-link {{ text-decoration: none; color: inherit; }}
-        a.map-link:hover {{ opacity: 0.7; }}
-
-        footer {{
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }}
-    </style>
-</head>
-<body>
-    <header>
-        <div>
-            <h1><a class="map-link" href="https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=12" target="_blank">📍 {location_name}</a></h1>
-            <p class="generated">Generated {generated_at} &mdash; Data from {model_label(model)}{f" &amp; {model_label(precip_model)} (precip.)" if precip_model else ""} via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
-        </div>
-        <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">Dark mode</button>
-    </header>
-
-    {summary_html}
-
-    <div class="daily-strip">
-        {day_cards}
-    </div>
-
-    {hourly_panels}
-
-    <script>
-    function selectDay(index) {{
-        document.querySelectorAll('.day-card').forEach((c, i) => c.classList.toggle('active', i === index));
-        document.querySelectorAll('.hourly-panel').forEach((p, i) => p.classList.toggle('active', i === index));
-    }}
-
-    (function() {{
-        const saved = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const dark = saved ? saved === 'dark' : prefersDark;
-        applyTheme(dark);
-    }})();
-
-    function applyTheme(dark) {{
-        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-        document.getElementById('theme-btn').textContent = dark ? 'Light mode' : 'Dark mode';
-    }}
-
-    function toggleTheme() {{
-        const dark = document.documentElement.getAttribute('data-theme') !== 'dark';
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
-        applyTheme(dark);
-    }}
-    </script>
-</body>
-</html>"""
+    template = _env.get_template("forecast.html")
+    return template.render(
+        location_name=location_name,
+        lat=lat,
+        lon=lon,
+        generated_at=generated_at,
+        primary_model_label=model_label(model),
+        precip_model_label=model_label(precip_model) if precip_model else None,
+        summary_html=summary_html,
+        day_cards=day_cards,
+        hourly_panels=hourly_panels,
+    )
 
 
 def load_config(path: str) -> dict:

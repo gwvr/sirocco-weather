@@ -15,6 +15,7 @@ wheels/
 
 # Generated output
 forecast.html
+!templates/*.html
 
 # Claude Code local settings
 .claude/
