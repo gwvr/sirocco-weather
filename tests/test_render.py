@@ -106,41 +106,34 @@ def test_build_html_is_valid_html():
 # --- temp_color ---
 
 def test_temp_color_cold():
-    assert temp_color(-15) == "#7f8db8"
-    assert temp_color(-7) == "#bbc2d9"
-    assert temp_color(-2) == "#eaedf3"
+    assert temp_color(-15) == "tc-0"
+    assert temp_color(-7) == "tc-1"
+    assert temp_color(-2) == "tc-2"
 
 def test_temp_color_mild():
-    assert temp_color(3) == "#fff1ca"
-    assert temp_color(7) == "#ffeaac"
-    assert temp_color(12) == "#ffd765"
+    assert temp_color(3) == "tc-3"
+    assert temp_color(7) == "tc-4"
+    assert temp_color(12) == "tc-5"
 
 def test_temp_color_warm():
-    assert temp_color(17) == "#ffbd56"
-    assert temp_color(22) == "#ffa447"
-    assert temp_color(27) == "#ff8a39"
-    assert temp_color(32) == "#f36233"
-    assert temp_color(36) == "#de2e33"
+    assert temp_color(17) == "tc-6"
+    assert temp_color(22) == "tc-7"
+    assert temp_color(27) == "tc-8"
+    assert temp_color(32) == "tc-9"
+    assert temp_color(36) == "tc-10"
 
 
 # --- uv_color ---
 
-def test_uv_color_returns_hex():
-    for uv in [0, 3, 6, 8, 11]:
-        c = uv_color(uv)
-        assert c.startswith("#") and len(c) == 7
+def test_uv_color_returns_class():
+    for uv, expected in [(0, "uvc-0"), (3, "uvc-1"), (6, "uvc-2"), (8, "uvc-3"), (11, "uvc-4")]:
+        assert uv_color(uv) == expected
 
-def test_uv_color_low_is_greenish():
-    c = uv_color(1)
-    r = int(c[1:3], 16)
-    g = int(c[3:5], 16)
-    assert g > r  # green channel dominates for low UV
+def test_uv_color_low():
+    assert uv_color(1) == "uvc-0"
 
-def test_uv_color_high_is_purplish():
-    c = uv_color(12)
-    r = int(c[1:3], 16)
-    b = int(c[5:7], 16)
-    assert r > 0 and b > 0  # violet band has both r and b
+def test_uv_color_extreme():
+    assert uv_color(12) == "uvc-4"
 
 
 # --- wind_compass ---
