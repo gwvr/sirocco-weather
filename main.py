@@ -110,7 +110,7 @@ def fetch_precip_probability(latitude: float, longitude: float, timezone: str, m
         "latitude": latitude,
         "longitude": longitude,
         "timezone": timezone,
-        "forecast_days": 7,
+        "forecast_days": 6,
         "hourly": "precipitation_probability",
         "models": model,
     }
@@ -124,7 +124,7 @@ def fetch_forecast(latitude: float, longitude: float, timezone: str, model: str 
         "latitude": latitude,
         "longitude": longitude,
         "timezone": timezone,
-        "forecast_days": 7,
+        "forecast_days": 6,
         "daily": ",".join(DAILY_VARIABLES),
         "hourly": ",".join(HOURLY_VARIABLES),
         "wind_speed_unit": wind_units,
