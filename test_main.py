@@ -3,11 +3,10 @@ import os
 from datetime import date
 from unittest.mock import patch
 
-from main import (
+from sirocco.render import (
     build_html,
     format_date,
     format_time,
-    load_config,
     model_label,
     temp_color,
     uv_color,
@@ -15,6 +14,7 @@ from main import (
     wind_compass,
     wmo_description,
 )
+from sirocco.cli import load_config
 
 
 def test_format_time():
@@ -24,7 +24,7 @@ def test_format_time():
 
 def test_format_date_today():
     today = date.today()
-    with patch("main.datetime") as mock_dt:
+    with patch("sirocco.render.datetime") as mock_dt:
         mock_dt.strptime.side_effect = lambda s, f: __import__("datetime").datetime.strptime(s, f)
         mock_dt.now.return_value = __import__("datetime").datetime(today.year, today.month, today.day)
         label, short = format_date(today.strftime("%Y-%m-%d"))
@@ -35,7 +35,7 @@ def test_format_date_tomorrow():
     from datetime import datetime, timedelta
     tomorrow = date.today() + timedelta(days=1)
     today_dt = datetime.today()
-    with patch("main.datetime") as mock_dt:
+    with patch("sirocco.render.datetime") as mock_dt:
         mock_dt.strptime.side_effect = lambda s, f: __import__("datetime").datetime.strptime(s, f)
         mock_dt.now.return_value = today_dt
         label, short = format_date(tomorrow.strftime("%Y-%m-%d"))
@@ -46,7 +46,7 @@ def test_format_date_weekday():
     from datetime import datetime, timedelta
     future = date.today() + timedelta(days=3)
     today_dt = datetime.today()
-    with patch("main.datetime") as mock_dt:
+    with patch("sirocco.render.datetime") as mock_dt:
         mock_dt.strptime.side_effect = lambda s, f: __import__("datetime").datetime.strptime(s, f)
         mock_dt.now.return_value = today_dt
         label, short = format_date(future.strftime("%Y-%m-%d"))
