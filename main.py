@@ -562,7 +562,8 @@ def parse_args() -> argparse.Namespace:
 def main():
     args = parse_args()
 
-    config = load_config(args.config) if args.config else {}
+    config_path = args.config or ("location.yaml" if Path("location.yaml").exists() else None)
+    config = load_config(config_path) if config_path else {}
     locations = config.get("locations", {})
 
     if locations:
