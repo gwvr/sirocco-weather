@@ -306,7 +306,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         def _cell(v, fmt_str, suffix=""): return f"<td>{format(v, fmt_str)}{suffix}</td>" if v is not None else "<td>—</td>"
 
         symbol_cells   = "".join(
-            f'<td>{weather_icon_html(c, is_day=sunrise_hm <= t[11:16] <= sunset_hm, size=24, use_meteocons=use_meteocons)}</td>'
+            f'<td>{weather_icon_html(c, is_day=sunrise_hm <= t[11:16] <= sunset_hm, size=20, use_meteocons=use_meteocons)}</td>'
             if c is not None else "<td>—</td>"
             for c, t in zip(h_codes, h_times)
         )
@@ -452,13 +452,13 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         .hourly-panel.active {{ display: block; }}
         .hourly-scroll {{ overflow-x: auto; }}
 
-        table.hourly {{ border-collapse: collapse; white-space: nowrap; }}
+        table.hourly {{ border-collapse: collapse; white-space: nowrap; width: 100%; }}
         table.hourly th,
         table.hourly td {{
             border: 1px solid var(--border);
-            padding: 0.3rem 0.45rem;
+            padding: 0.25rem 0.28rem;
             text-align: center;
-            font-size: 0.78rem;
+            font-size: 0.74rem;
         }}
         table.hourly thead th {{
             background: var(--surface-2);
@@ -470,7 +470,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
             color: var(--text-mid);
             font-weight: 600;
             text-align: right;
-            padding-right: 0.75rem;
+            padding-right: 0.5rem;
             border-right: 2px solid var(--border-strong);
             position: sticky;
             left: 0;
