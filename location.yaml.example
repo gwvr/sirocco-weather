@@ -1,0 +1,18 @@
+default: home
+
+locations:
+  home:
+    name: London, UK
+    lat: 51.5074
+    lon: -0.1278
+    timezone: Europe/London
+    model: ukmo_seamless        # optional: weather model (default: ECMWF)
+    wind_units: mph             # optional: mph or kmh (default: kmh)
+    precip_model: ecmwf_ifs025  # optional: secondary model for precipitation
+
+  # Add more locations as needed:
+  # office:
+  #   name: Manchester, UK
+  #   lat: 53.4808
+  #   lon: -2.2426
+  #   timezone: Europe/London

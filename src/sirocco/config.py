@@ -1,7 +1,7 @@
-DEFAULT_LATITUDE = 51.81684
-DEFAULT_LONGITUDE = -0.35706
+DEFAULT_LATITUDE = 51.5074
+DEFAULT_LONGITUDE = -0.1278
 DEFAULT_TIMEZONE = "Europe/London"
-DEFAULT_LOCATION_NAME = "Harpenden, UK"
+DEFAULT_LOCATION_NAME = "London, UK"
 
 API_URL = "https://api.open-meteo.com/v1/forecast"
 METEOCON_BASE = "https://bmcdn.nl/assets/weather-icons/v3.0/fill/svg"
