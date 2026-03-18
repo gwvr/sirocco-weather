@@ -96,10 +96,12 @@ Then tell the user to open `forecast.html` in their browser and **wait for appro
 
 ```bash
 git checkout main
-git merge --no-ff fix/Weather-xyz
+git merge --no-ff fix/Weather-xyz -m "Merge fix/Weather-xyz: brief description of what was fixed and how"
 git branch -d fix/Weather-xyz
 bd close Weather-xyz
 ```
+
+The merge message should summarise the issue and solution in 1–2 sentences, so `git log --oneline` is informative without digging into individual commits.
 
 ### If changes are requested after review
 
