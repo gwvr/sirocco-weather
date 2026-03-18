@@ -22,6 +22,7 @@ packages = ["src/sirocco"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=sirocco --cov-report=term"
+testpaths = ["tests"]
 
 [dependency-groups]
 dev = [

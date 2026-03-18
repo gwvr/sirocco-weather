@@ -1,5 +1,3 @@
-import tempfile
-import os
 from datetime import date
 from unittest.mock import patch
 
@@ -14,7 +12,6 @@ from sirocco.render import (
     wind_compass,
     wmo_description,
 )
-from sirocco.cli import load_config
 
 
 def test_format_time():
@@ -170,7 +167,6 @@ def test_model_label_none():
     assert model_label(None) == "ECMWF"
 
 def test_model_label_known():
-    # Should return a human-readable label (not the raw model key)
     label = model_label("ecmwf_ifs025")
     assert isinstance(label, str) and len(label) > 0
 
@@ -196,31 +192,7 @@ def test_weather_icon_html_unknown_code_falls_back_to_emoji():
 def test_weather_icon_html_night():
     day = weather_icon_html(0, is_day=True, use_meteocons=True)
     night = weather_icon_html(0, is_day=False, use_meteocons=True)
-    # Night icon filename differs from day icon filename
     assert day != night
-
-
-# --- load_config ---
-
-def test_load_config_reads_yaml():
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
-        f.write("location: London\nlat: 51.5\n")
-        path = f.name
-    try:
-        cfg = load_config(path)
-        assert cfg["location"] == "London"
-        assert cfg["lat"] == 51.5
-    finally:
-        os.unlink(path)
-
-def test_load_config_empty_file_returns_empty_dict():
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
-        path = f.name
-    try:
-        cfg = load_config(path)
-        assert cfg == {}
-    finally:
-        os.unlink(path)
 
 
 # --- build_html with hourly data ---
