@@ -460,7 +460,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         }}
         table.hourly thead th {{
             background: var(--surface-2);
-            color: var(--text-muted);
+            color: var(--text-mid);
             font-weight: normal;
         }}
         td.row-label, th.row-label {{
