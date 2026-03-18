@@ -156,6 +156,22 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 
     # --- Hourly panels (one per day, pre-rendered) ---
     def _cell(v, fmt_str, suffix=""): return f"<td>{format(v, fmt_str)}{suffix}</td>" if v is not None else "<td>—</td>"
+    def _lbl(full, short): return f'<td class="row-label"><span class="lbl-full">{full}</span><span class="lbl-short">{short}</span></td>'
+
+    label_table = f"""<table class="hourly hourly-labels">
+            <thead><tr><th class="row-label"></th></tr></thead>
+            <tbody>
+                <tr>{_lbl('Symbol', 'Symbol')}</tr>
+                <tr>{_lbl('Chance of precipitation', 'Precipitation')}</tr>
+                <tr>{_lbl('Temperature (°C)', 'Temp (°C)')}</tr>
+                <tr>{_lbl('Feels like (°C)', 'Feels like')}</tr>
+                <tr>{_lbl('Wind direction', 'Direction')}</tr>
+                <tr>{_lbl(f'Wind speed ({wind_units})', f'Wind ({wind_units})')}</tr>
+                <tr>{_lbl(f'Wind gust ({wind_units})', f'Gusts ({wind_units})')}</tr>
+                <tr>{_lbl('Humidity', 'Humidity')}</tr>
+                <tr>{_lbl('UV', 'UV')}</tr>
+            </tbody>
+        </table>"""
 
     hourly_panels = ""
     for day_i in range(n_days):
@@ -205,21 +221,24 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 
         hourly_panels += f"""
         <div class="hourly-panel {active}" id="day-{day_i}">
-            <div class="hourly-scroll">
-                <table class="hourly">
-                    <thead><tr><th class="row-label"></th>{time_cells}</tr></thead>
-                    <tbody>
-                        <tr><td class="row-label"><span class="lbl-full">Symbol</span><span class="lbl-short">Symbol</span></td>{symbol_cells}</tr>
-                        <tr><td class="row-label"><span class="lbl-full">Chance of precipitation</span><span class="lbl-short">Precipitation</span></td>{precip_cells}</tr>
-                        <tr><td class="row-label"><span class="lbl-full">Temperature (°C)</span><span class="lbl-short">Temp (°C)</span></td>{temp_cells}</tr>
-                        <tr><td class="row-label"><span class="lbl-full">Feels like (°C)</span><span class="lbl-short">Feels like</span></td>{feels_cells}</tr>
-                        <tr><td class="row-label"><span class="lbl-full">Wind direction</span><span class="lbl-short">Direction</span></td>{wdir_cells}</tr>
-                        <tr><td class="row-label"><span class="lbl-full">Wind speed ({wind_units})</span><span class="lbl-short">Wind ({wind_units})</span></td>{wind_cells}</tr>
-                        <tr><td class="row-label"><span class="lbl-full">Wind gust ({wind_units})</span><span class="lbl-short">Gusts ({wind_units})</span></td>{gust_cells}</tr>
-                        <tr><td class="row-label"><span class="lbl-full">Humidity</span><span class="lbl-short">Humidity</span></td>{humidity_cells}</tr>
-                        <tr><td class="row-label"><span class="lbl-full">UV</span><span class="lbl-short">UV</span></td>{uv_cells}</tr>
-                    </tbody>
-                </table>
+            <div class="hourly-layout">
+                {label_table}
+                <div class="hourly-scroll">
+                    <table class="hourly hourly-data">
+                        <thead><tr>{time_cells}</tr></thead>
+                        <tbody>
+                            <tr>{symbol_cells}</tr>
+                            <tr>{precip_cells}</tr>
+                            <tr>{temp_cells}</tr>
+                            <tr>{feels_cells}</tr>
+                            <tr>{wdir_cells}</tr>
+                            <tr>{wind_cells}</tr>
+                            <tr>{gust_cells}</tr>
+                            <tr>{humidity_cells}</tr>
+                            <tr>{uv_cells}</tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>"""
 
