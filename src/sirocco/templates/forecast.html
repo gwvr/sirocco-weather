@@ -165,6 +165,9 @@
             color: var(--text-muted);
         }
 
+        .lbl-short { display: none; }
+        .day-short { display: none; }
+
         @media (max-width: 480px) {
             body { padding: 1rem 0.5rem; }
 
@@ -178,6 +181,12 @@
 
             /* Larger touch target for theme toggle */
             .theme-toggle { padding: 0.5rem 0.8rem; }
+
+            /* Abbreviated day names and row labels */
+            .lbl-full { display: none; }
+            .lbl-short { display: inline; }
+            .day-full { display: none; }
+            .day-short { display: inline; }
         }
     </style>
 </head>
