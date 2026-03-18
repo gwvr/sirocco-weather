@@ -145,9 +145,10 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         tmax = daily["temperature_2m_max"][i]
         tmin = daily["temperature_2m_min"][i]
         active = "active" if i == 0 else ""
+        short_weekday = weekday if weekday == "Today" else weekday[:3]
         day_cards += f"""
         <div class="day-card {active}" onclick="selectDay({i})">
-            <div class="day-name">{weekday}</div>
+            <div class="day-name"><span class="day-full">{weekday}</span><span class="day-short">{short_weekday}</span></div>
             <div class="day-date">{short_date}</div>
             <div class="day-emoji">{day_icon}</div>
             <div class="day-temps"><span class="tmax">{f"{tmax:.0f}°" if tmax is not None else "—"}</span><span class="tmin">{f"{tmin:.0f}°" if tmin is not None else "—"}</span></div>
@@ -208,15 +209,15 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
                 <table class="hourly">
                     <thead><tr><th class="row-label"></th>{time_cells}</tr></thead>
                     <tbody>
-                        <tr><td class="row-label">Symbol</td>{symbol_cells}</tr>
-                        <tr><td class="row-label">Chance of precipitation</td>{precip_cells}</tr>
-                        <tr><td class="row-label">Temperature (°C)</td>{temp_cells}</tr>
-                        <tr><td class="row-label">Feels like (°C)</td>{feels_cells}</tr>
-                        <tr><td class="row-label">Wind direction</td>{wdir_cells}</tr>
-                        <tr><td class="row-label">Wind speed ({wind_units})</td>{wind_cells}</tr>
-                        <tr><td class="row-label">Wind gust ({wind_units})</td>{gust_cells}</tr>
-                        <tr><td class="row-label">Humidity</td>{humidity_cells}</tr>
-                        <tr><td class="row-label">UV</td>{uv_cells}</tr>
+                        <tr><td class="row-label"><span class="lbl-full">Symbol</span><span class="lbl-short">Symbol</span></td>{symbol_cells}</tr>
+                        <tr><td class="row-label"><span class="lbl-full">Chance of precipitation</span><span class="lbl-short">Precipitation</span></td>{precip_cells}</tr>
+                        <tr><td class="row-label"><span class="lbl-full">Temperature (°C)</span><span class="lbl-short">Temp (°C)</span></td>{temp_cells}</tr>
+                        <tr><td class="row-label"><span class="lbl-full">Feels like (°C)</span><span class="lbl-short">Feels like</span></td>{feels_cells}</tr>
+                        <tr><td class="row-label"><span class="lbl-full">Wind direction</span><span class="lbl-short">Direction</span></td>{wdir_cells}</tr>
+                        <tr><td class="row-label"><span class="lbl-full">Wind speed ({wind_units})</span><span class="lbl-short">Wind ({wind_units})</span></td>{wind_cells}</tr>
+                        <tr><td class="row-label"><span class="lbl-full">Wind gust ({wind_units})</span><span class="lbl-short">Gusts ({wind_units})</span></td>{gust_cells}</tr>
+                        <tr><td class="row-label"><span class="lbl-full">Humidity</span><span class="lbl-short">Humidity</span></td>{humidity_cells}</tr>
+                        <tr><td class="row-label"><span class="lbl-full">UV</span><span class="lbl-short">UV</span></td>{uv_cells}</tr>
                     </tbody>
                 </table>
             </div>
