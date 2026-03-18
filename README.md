@@ -84,8 +84,3 @@ uv run pytest       # run tests
 uv run main.py      # regenerate forecast.html
 ```
 
----
-
-## Why "Sirocco"?
-
-A sirocco is a hot wind blowing in from the Sahara. It felt apt for a project blowing back against the hot air of bloated weather apps.
