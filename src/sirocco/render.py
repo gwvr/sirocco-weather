@@ -10,7 +10,6 @@ from .config import (
     METEOCON_BASE,
     METEOCON_ICONS,
     MODEL_LABELS,
-    MODEL_URLS,
     WMO_CODES,
 )
 
