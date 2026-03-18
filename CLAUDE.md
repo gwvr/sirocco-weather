@@ -5,7 +5,7 @@
 **Sirocco** is a work-in-progress Python application for fetching and displaying weather data.
 
 - **Status:** Early development / work in progress
-- **Entry point:** `main.py`
+- **Entry point:** `uv run sirocco` (console script)
 - **Package name:** `sirocco-weather` (see `pyproject.toml`)
 - **Version:** `0.1.0`
 
@@ -27,7 +27,7 @@ The Python version is pinned in `.python-version`. Dependencies are declared in 
 ## 3. Common Commands
 
 ### Run the app
-`uv run main.py`
+`uv run sirocco`
 
 ### Add a dependency
 `uv add <package>`
@@ -87,7 +87,7 @@ fix: short description of what changed (Weather-xyz)
 
 ```bash
 uv run pytest        # must pass
-uv run main.py       # regenerate forecast.html
+uv run sirocco       # regenerate forecast.html
 ```
 
 Then tell the user to open `forecast.html` in their browser and **wait for approval** before merging.
@@ -110,7 +110,7 @@ Switch back to the branch, fix, regenerate, and ask for re-review:
 ```bash
 git checkout fix/Weather-xyz
 # ... make changes ...
-uv run main.py && uv run pytest
+uv run sirocco && uv run pytest
 git commit -m "fix: address feedback (Weather-xyz)"
 # then signal for review again
 ```
