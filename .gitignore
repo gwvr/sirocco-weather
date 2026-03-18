@@ -13,6 +13,9 @@ wheels/
 .dolt/
 *.db
 
+# Test artefacts
+.coverage
+
 # Generated output
 forecast.html
 !templates/*.html
