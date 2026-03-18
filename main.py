@@ -231,7 +231,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
     now_hm = datetime.now().strftime("%H:%M")
     is_day_now = daily["sunrise"][0][11:16] <= now_hm <= daily["sunset"][0][11:16]
     today_code = daily["weather_code"][0]
-    today_icon = weather_icon_html(today_code, is_day=is_day_now, size=48, use_meteocons=use_meteocons) if today_code is not None else ""
+    today_icon = weather_icon_html(today_code, is_day=is_day_now, size=64, use_meteocons=use_meteocons) if today_code is not None else ""
 
     if hourly.get("temperature_2m"):
         remaining = range(current_hour, 24)
@@ -247,10 +247,11 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 
     summary_html = f"""
     <div class="summary">
-        <div class="summary-main">
-            <div class="summary-temp">{today_max:.0f}°<span class="summary-min">/{today_min:.0f}°C</span></div>
-            <div class="summary-desc">{today_icon} {today_desc}</div>
+        <div class="summary-left">
+            <div class="summary-icon">{today_icon}</div>
+            <div class="summary-desc">{today_desc}</div>
         </div>
+        <div class="summary-temp">{today_max:.0f}°<span class="summary-min">/{today_min:.0f}°C</span></div>
         <div class="summary-details">
             <span>🌅 {today_sunrise}</span>
             <span>🌇 {today_sunset}</span>
@@ -411,9 +412,10 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
             gap: 2rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }}
+        .summary-left {{ display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }}
         .summary-temp {{ font-size: 2.2rem; font-weight: 700; color: var(--header); }}
         .summary-min {{ font-size: 1.3rem; color: var(--text-muted); font-weight: 400; }}
-        .summary-desc {{ font-size: 0.95rem; color: var(--text-mid); margin-top: 0.2rem; }}
+        .summary-desc {{ font-size: 0.95rem; color: var(--text-mid); text-align: center; }}
         .summary-details {{ display: flex; gap: 1.5rem; font-size: 0.9rem; color: var(--text-mid); }}
 
         /* Daily strip */
@@ -477,7 +479,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         th.row-label {{ z-index: 2; }}
 
         .weather-icon {{ display: block; margin: 0 auto; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4)); }}
-        .summary-desc .weather-icon {{ display: inline; vertical-align: middle; }}
+        .summary-icon {{ line-height: 1; }}
 
         .wind-arrow {{ font-size: 1rem; display: inline-block; line-height: 1; }}
         .wind-cmp {{ font-size: 0.65rem; color: var(--text-muted); margin-top: 0.1rem; }}
