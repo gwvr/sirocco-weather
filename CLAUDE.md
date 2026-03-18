@@ -55,13 +55,73 @@ The Python version is pinned in `.python-version`. Dependencies are declared in 
 
 ---
 
-## 5. Issue Tracking (Beads)
+## 5. Git Workflow
+
+This project uses a **branch-per-issue** workflow. Each beads issue gets its own branch, merged back to `main` after visual approval of `forecast.html`.
+
+### Branch naming
+
+| Issue type | Prefix | Example |
+|---|---|---|
+| bug, chore | `fix/` | `fix/Weather-meo` |
+| feature, task, epic | `feat/` | `feat/Weather-5wh` |
+
+The full beads ID is the branch slug.
+
+### Starting work on an issue
+
+```bash
+git checkout -b fix/Weather-xyz   # create branch first
+bd update Weather-xyz --claim     # then claim
+```
+
+### Commit message format
+
+Include the beads ID in parentheses at the end:
+
+```
+fix: short description of what changed (Weather-xyz)
+```
+
+### Signalling readiness for review
+
+```bash
+uv run pytest        # must pass
+uv run main.py       # regenerate forecast.html
+```
+
+Then tell the user to open `forecast.html` in their browser and **wait for approval** before merging.
+
+### Merging after approval
+
+```bash
+git checkout main
+git merge --no-ff fix/Weather-xyz
+git branch -d fix/Weather-xyz
+bd close Weather-xyz
+```
+
+### If changes are requested after review
+
+Switch back to the branch, fix, regenerate, and ask for re-review:
+
+```bash
+git checkout fix/Weather-xyz
+# ... make changes ...
+uv run main.py && uv run pytest
+git commit -m "fix: address feedback (Weather-xyz)"
+# then signal for review again
+```
+
+---
+
+## 6. Issue Tracking (Beads)
 
 @AGENTS.md
 
 ---
 
-## 6. API & Config Notes
+## 7. API & Config Notes
 
 > _To be filled in once external APIs or configuration are introduced._
 

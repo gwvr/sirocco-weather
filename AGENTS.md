@@ -94,12 +94,21 @@ bd close bd-42 --reason "Completed" --json
 
 ### Workflow for AI Agents
 
-1. **Check ready work**: `bd ready` shows unblocked issues
-2. **Claim your task atomically**: `bd update <id> --claim`
-3. **Work on it**: Implement, test, document
-4. **Discover new work?** Create linked issue:
-   - `bd create "Found bug" --description="Details about what was found" -p 1 --deps discovered-from:<parent-id>`
-5. **Complete**: `bd close <id> --reason "Done"`
+1. **Check ready work**: `bd ready --json` shows unblocked issues
+2. **Create branch**: `git checkout -b fix/Weather-xyz` (use `feat/` for features/tasks)
+3. **Claim atomically**: `bd update Weather-xyz --claim --json`
+4. **Implement and test**: Make changes, run `uv run pytest`
+5. **Discover new work?** Create linked issue:
+   - `bd create "Found bug" --description="Details" -p 1 --deps discovered-from:Weather-xyz --json`
+6. **Generate output**: `uv run main.py` to produce `forecast.html`
+7. **Signal for review**: Tell the user to open `forecast.html` in their browser and **wait for approval**
+8. **After approval — merge**:
+   ```bash
+   git checkout main
+   git merge --no-ff fix/Weather-xyz
+   git branch -d fix/Weather-xyz
+   ```
+9. **Close the issue**: `bd close Weather-xyz`
 
 ### Auto-Sync
 
@@ -123,28 +132,31 @@ For more details, see README.md and docs/QUICKSTART.md.
 
 ## Landing the Plane (Session Completion)
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+**When ending a work session**, complete ALL steps below.
 
 **MANDATORY WORKFLOW:**
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+1. **File issues for remaining work** — Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed):
    ```bash
-   git pull --rebase
-   bd dolt push
-   git push
-   git status  # MUST show "up to date with origin"
+   uv run pytest
    ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+3. **Commit all work** — Ensure the current branch is clean
+4. **If mid-branch (not yet merged)**: Leave the branch in place; note the branch name and issue ID in handoff
+5. **Sync beads**:
+   ```bash
+   bd dolt push
+   ```
+6. **Push to remote** (only if a remote is configured):
+   ```bash
+   git remote | grep -q . && git push || echo "No remote configured — skipping push"
+   ```
+7. **Hand off** — State current branch, issue ID, and what still needs doing
 
 **CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+- NEVER merge without user approval of `forecast.html`
+- NEVER fast-forward merge — always use `--no-ff`
+- NEVER close a beads issue before the branch is merged and deleted
+- If mid-issue at session end, leave the branch intact — do not abandon work on `main`
 
 <!-- END BEADS INTEGRATION -->
