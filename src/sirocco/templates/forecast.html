@@ -164,6 +164,21 @@
             font-size: 0.75rem;
             color: var(--text-muted);
         }
+
+        @media (max-width: 480px) {
+            body { padding: 1rem 0.5rem; }
+
+            /* Summary panel — stack vertically on narrow screens */
+            .summary { flex-wrap: wrap; gap: 0.75rem; padding: 0.75rem 1rem; }
+            .summary-details { flex-wrap: wrap; gap: 0.5rem 1rem; }
+
+            /* Daily strip — scroll horizontally, keep cards legible */
+            .daily-strip { overflow-x: auto; }
+            .day-card { min-width: 3.5rem; padding: 0.9rem 0.4rem; }
+
+            /* Larger touch target for theme toggle */
+            .theme-toggle { padding: 0.5rem 0.8rem; }
+        }
     </style>
 </head>
 <body>
@@ -184,9 +199,21 @@
     [[ hourly_panels | safe ]]
 
     <script>
+    function scrollToWorkingDay(panel) {
+        const scroll = panel.querySelector('.hourly-scroll');
+        if (!scroll) return;
+        const labelWidth = (panel.querySelector('th.row-label') || {offsetWidth: 0}).offsetWidth;
+        const target = Array.from(panel.querySelectorAll('thead th:not(.row-label)'))
+            .find(th => th.textContent.trim() >= '09:00');
+        if (target) scroll.scrollLeft = target.offsetLeft - labelWidth;
+    }
+
     function selectDay(index) {
         document.querySelectorAll('.day-card').forEach((c, i) => c.classList.toggle('active', i === index));
-        document.querySelectorAll('.hourly-panel').forEach((p, i) => p.classList.toggle('active', i === index));
+        document.querySelectorAll('.hourly-panel').forEach((p, i) => {
+            p.classList.toggle('active', i === index);
+            if (i === index) scrollToWorkingDay(p);
+        });
     }
 
     (function() {
@@ -194,6 +221,8 @@
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const dark = saved ? saved === 'dark' : prefersDark;
         applyTheme(dark);
+        const active = document.querySelector('.hourly-panel.active');
+        if (active) scrollToWorkingDay(active);
     })();
 
     function applyTheme(dark) {
