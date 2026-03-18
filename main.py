@@ -330,9 +330,9 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
                     <thead><tr><th class="row-label"></th>{time_cells}</tr></thead>
                     <tbody>
                         <tr><td class="row-label">Symbol</td>{symbol_cells}</tr>
-                        <tr><td class="row-label">Precip.</td>{precip_cells}</tr>
-                        <tr><td class="row-label">Temp °C</td>{temp_cells}</tr>
-                        <tr><td class="row-label">Feels like °C</td>{feels_cells}</tr>
+                        <tr><td class="row-label">Chance of precipitation</td>{precip_cells}</tr>
+                        <tr><td class="row-label">Temperature (°C)</td>{temp_cells}</tr>
+                        <tr><td class="row-label">Feels like (°C)</td>{feels_cells}</tr>
                         <tr><td class="row-label">Wind direction</td>{wdir_cells}</tr>
                         <tr><td class="row-label">Wind speed ({wind_units})</td>{wind_cells}</tr>
                         <tr><td class="row-label">Wind gust ({wind_units})</td>{gust_cells}</tr>
