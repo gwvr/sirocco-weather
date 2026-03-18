@@ -170,9 +170,11 @@
         @media (max-width: 480px) {
             body { padding: 1rem 0.5rem; }
 
-            /* Summary panel — stack vertically on narrow screens */
-            .summary { flex-wrap: wrap; gap: 0.75rem; padding: 0.75rem 1rem; }
+            /* Summary panel — more compact on mobile */
+            .summary { flex-wrap: wrap; gap: 0.5rem 0.75rem; padding: 0.5rem 0.75rem; }
             .summary-details { flex-wrap: wrap; gap: 0.5rem 1rem; }
+            .summary-temp { font-size: 1.7rem; }
+            .summary-icon img { width: 48px; height: 48px; }
 
             /* Daily strip — scroll horizontally, keep cards legible */
             .daily-strip { overflow-x: auto; }
