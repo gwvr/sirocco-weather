@@ -96,6 +96,11 @@ def weather_icon_html(wmo_code: int, is_day: bool = True, size: int = 32, use_me
     return f'<img class="weather-icon" src="{METEOCON_BASE}/{name}.svg" alt="{emoji}" width="{size}" height="{size}">'
 
 
+def detail_icon(name: str, size: int = 24) -> str:
+    """Return an inline <img> for a named Basmilius weather icon."""
+    return f'<img src="{METEOCON_BASE}/{name}.svg" width="{size}" height="{size}" class="detail-icon" alt="">'
+
+
 def wind_compass(degrees: float) -> str:
     dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
             "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
@@ -144,30 +149,42 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 
         icon = weather_icon_html(code, is_day=is_day_icon, size=64, use_meteocons=use_meteocons) if code is not None else ""
 
-        if i == 0 and hourly.get("temperature_2m"):
-            remaining = range(current_hour, 24)
-            h_temps = [hourly["temperature_2m"][j] for j in remaining if hourly["temperature_2m"][j] is not None]
-            h_uv    = [hourly["uv_index"][j] for j in remaining if hourly.get("uv_index") and hourly["uv_index"][j] is not None]
-            tmax = max(h_temps) if h_temps else daily["temperature_2m_max"][0]
-            tmin = min(h_temps) if h_temps else daily["temperature_2m_min"][0]
-            uv   = max(h_uv) if h_uv else daily["uv_index_max"][0]
+        day_start = i * 24
+        h_slice   = range(day_start + (current_hour if i == 0 else 0), day_start + 24)
+
+        if hourly.get("temperature_2m"):
+            h_temps  = [hourly["temperature_2m"][j]  for j in h_slice if hourly["temperature_2m"][j]  is not None]
+            h_gusts    = [hourly["wind_gusts_10m"][j]   for j in h_slice if hourly.get("wind_gusts_10m") and hourly["wind_gusts_10m"][j] is not None]
+            h_precip   = [hourly["precipitation_probability"][j] for j in h_slice if hourly.get("precipitation_probability") and hourly["precipitation_probability"][j] is not None]
+            h_humidity = [hourly["relative_humidity_2m"][j] for j in h_slice if hourly.get("relative_humidity_2m") and hourly["relative_humidity_2m"][j] is not None]
+            tmax        = max(h_temps)  if h_temps  else daily["temperature_2m_max"][i]
+            tmin        = min(h_temps)  if h_temps  else daily["temperature_2m_min"][i]
+            # Only show UV if all daylight hours have data
+            times = hourly.get("time", [])
+            daylight_uv = [hourly["uv_index"][j] for j in h_slice if hourly.get("uv_index") and j < len(times) and sunrise_hm <= times[j][11:16] <= sunset_hm]
+            uv = max(daylight_uv) if daylight_uv and all(v is not None for v in daylight_uv) else None
+            max_gust     = max(h_gusts)    if h_gusts    else None
+            max_precip   = max(h_precip)   if h_precip   else None
+            max_humidity = max(h_humidity) if h_humidity else None
         else:
-            tmax = daily["temperature_2m_max"][i]
-            tmin = daily["temperature_2m_min"][i]
-            uv   = daily["uv_index_max"][i]
+            tmax       = daily["temperature_2m_max"][i]
+            tmin       = daily["temperature_2m_min"][i]
+            uv         = daily["uv_index_max"][i]
+            max_gust     = None
+            max_precip   = None
+            max_humidity = None
 
         active = "active" if i == 0 else ""
         summary_panels += f"""
     <div class="summary {active}" id="summary-{i}">
-        <div class="summary-left">
-            <div class="summary-icon">{icon}</div>
-            <div class="summary-desc">{desc}</div>
-        </div>
-        <div class="summary-temp">{tmax:.0f}°<span class="summary-min">/{tmin:.0f}°C</span></div>
+        <div class="summary-desc">{desc}</div>
         <div class="summary-details">
-            <span>🌅 {sunrise}</span>
-            <span>🌇 {sunset}</span>
-            {f'<span>🕶️ UV {uv:.0f}</span>' if uv is not None else ''}
+            <span>{detail_icon("sunrise")} {sunrise}</span>
+            <span>{detail_icon("sunset")} {sunset}</span>
+            {f'<span>{detail_icon("wind-beaufort-0")} {max_gust:.0f} {wind_units}</span>' if max_gust is not None else ''}
+            {f'<span>{detail_icon("rain")} {max_precip:.0f}%</span>' if max_precip is not None else ''}
+            {f'<span>{detail_icon("humidity")} {max_humidity:.0f}%</span>' if max_humidity is not None else ''}
+            {f'<span>{detail_icon(f"uv-index-{max(1, min(int(uv), 11))}")} UV {uv:.0f}</span>' if uv is not None else ''}
         </div>
     </div>"""
 
