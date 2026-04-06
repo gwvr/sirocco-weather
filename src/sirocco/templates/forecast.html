@@ -58,14 +58,11 @@
         /* Summary */
         .summary { display: none; }
         .summary.active {
-            background: var(--surface);
-            border-radius: 8px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 0.75rem;
             display: flex;
             align-items: center;
             gap: 2rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 0.75rem 1.5rem;
+            border-top: 1px solid var(--border);
         }
         .summary-left { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
         .summary-temp { font-size: 2.2rem; font-weight: 700; color: var(--header); }
@@ -76,12 +73,14 @@
         /* Daily strip */
         .daily-strip {
             display: flex;
+            flex-direction: column;
             background: var(--surface);
             border-radius: 8px;
             overflow: hidden;
             margin-bottom: 0.75rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
+        .day-cards { display: flex; }
         .day-card {
             flex: 1;
             padding: 0.7rem 0.4rem;
@@ -186,7 +185,7 @@
             body { padding: 1rem 0.5rem; }
 
             /* Summary panel — more compact on mobile */
-            .summary { flex-wrap: wrap; gap: 0.5rem 0.75rem; padding: 0.5rem 0.75rem; }
+            .summary.active { flex-wrap: wrap; gap: 0.5rem 0.75rem; padding: 0.5rem 0.75rem; }
             .summary-details { flex-wrap: wrap; gap: 0.5rem 1rem; }
             .summary-temp { font-size: 1.7rem; }
             .summary-icon img { width: 48px; height: 48px; }
@@ -215,10 +214,11 @@
         <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">Dark mode</button>
     </header>
 
-    [[ summary_panels | safe ]]
-
     <div class="daily-strip">
-        [[ day_cards | safe ]]
+        <div class="day-cards">
+            [[ day_cards | safe ]]
+        </div>
+        [[ summary_panels | safe ]]
     </div>
 
     [[ hourly_panels | safe ]]
