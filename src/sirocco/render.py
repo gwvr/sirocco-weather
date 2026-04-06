@@ -92,12 +92,18 @@ def wind_compass(degrees: float) -> str:
     return dirs[round(degrees / 22.5) % 16]
 
 
-def wind_arrow_scale(speed: float | None) -> float:
-    """Scale wind speed to arrow font-size multiplier (0.6 to 2.0rem)."""
-    if speed is None or speed < 0:
-        return 1.0
-    # Scale 0-50 kmh to 0.6-2.0 multiplier
-    return min(0.6 + (speed / 25), 2.0)
+def wind_arrow_char(speed: float | None) -> str:
+    """Return an arrow character scaled to wind speed tier."""
+    if speed is None:
+        return "↑"
+    speed = round(speed)
+    if speed < 10:
+        return "↑"    # calm/light — standard
+    if speed < 20:
+        return "⇑"    # moderate — double
+    if speed < 30:
+        return "⬆"    # fresh — heavy filled
+    return "⬆⬆"      # strong — doubled heavy
 
 
 def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: str | None = None, wind_units: str = "kmh", lat: float = DEFAULT_LATITUDE, lon: float = DEFAULT_LONGITUDE, precip_model: str | None = None, icons: str = "meteocons") -> str:
@@ -217,10 +223,10 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         temp_cells     = "".join(f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_temps)
         feels_cells    = "".join(f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_feels)
         wdir_cells     = "".join(
-            f'<td><div class="wind-arrow" style="transform:rotate({(d + 180) % 360:.0f}deg); font-size:{wind_arrow_scale(w)}rem">↑</div>'
+            f'<td><div class="wind-arrow" style="transform:rotate({(d + 180) % 360:.0f}deg)">{wind_arrow_char(g)}</div>'
             f'<div class="wind-cmp">{wind_compass(d)}</div></td>'
             if d is not None else "<td>—</td>"
-            for d, w in zip(h_wdir, h_wind)
+            for d, w, g in zip(h_wdir, h_wind, h_gusts)
         )
         wind_cells     = "".join(_cell(w, ".0f") for w in h_wind)
         gust_cells     = "".join(_cell(g, ".0f") for g in h_gusts)
