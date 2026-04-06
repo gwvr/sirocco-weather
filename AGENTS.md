@@ -85,8 +85,10 @@ tk close <id>
 5. **Discover new work?** Create a linked ticket before continuing
 6. **Generate output**: `uv run sirocco` to produce `forecast.html`
 7. **Signal for review**: Tell the user to open `forecast.html` in their browser and **wait for approval**
-8. **After approval — merge and close**:
+8. **After approval — commit, merge and close**:
    ```bash
+   git add <changed files>
+   git commit -m "feat: description (Wea-xyz)"
    git checkout main
    git merge --no-ff fix/Wea-xyz -m "Merge fix/Wea-xyz: brief description"
    git branch -d fix/Wea-xyz
@@ -98,6 +100,8 @@ tk close <id>
 - ✅ Use tk for ALL task tracking
 - ✅ Check `tk ready` before asking "what should I work on?"
 - ✅ Create a ticket before starting any work item
+- ✅ Always wait for the user to review `forecast.html` before committing, merging, or closing a ticket
+- ❌ Do NOT commit or close a ticket before the user has approved the visual output
 - ❌ Do NOT create markdown TODO lists
 - ❌ Do NOT use beads (`bd`) — it has been retired
 
