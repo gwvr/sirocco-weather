@@ -123,40 +123,51 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
     n_days = len(dates)
     generated_at = datetime.now().strftime("%d %b %Y at %H:%M")
 
-    # --- Summary panel (today, remaining hours only) ---
+    # --- Summary panels (one per day) ---
     current_hour = datetime.now().hour
-    today_desc, _ = wmo_description(daily["weather_code"][0])
-    today_sunrise = format_time(daily["sunrise"][0])
-    today_sunset = format_time(daily["sunset"][0])
     use_meteocons = (icons == "meteocons")
     now_hm = datetime.now().strftime("%H:%M")
-    is_day_now = daily["sunrise"][0][11:16] <= now_hm <= daily["sunset"][0][11:16]
-    today_code = daily["weather_code"][0]
-    today_icon = weather_icon_html(today_code, is_day=is_day_now, size=64, use_meteocons=use_meteocons) if today_code is not None else ""
 
-    if hourly.get("temperature_2m"):
-        remaining = range(current_hour, 24)
-        h_temps = [hourly["temperature_2m"][j] for j in remaining if hourly["temperature_2m"][j] is not None]
-        h_uv    = [hourly["uv_index"][j] for j in remaining if hourly.get("uv_index") and hourly["uv_index"][j] is not None]
-        today_max = max(h_temps) if h_temps else daily["temperature_2m_max"][0]
-        today_min = min(h_temps) if h_temps else daily["temperature_2m_min"][0]
-        today_uv  = max(h_uv) if h_uv else daily["uv_index_max"][0]
-    else:
-        today_max = daily["temperature_2m_max"][0]
-        today_min = daily["temperature_2m_min"][0]
-        today_uv  = daily["uv_index_max"][0]
+    summary_panels = ""
+    for i in range(n_days):
+        code = daily["weather_code"][i]
+        desc, _ = wmo_description(code)
+        sunrise_hm = daily["sunrise"][i][11:16]
+        sunset_hm  = daily["sunset"][i][11:16]
+        sunrise    = format_time(daily["sunrise"][i])
+        sunset     = format_time(daily["sunset"][i])
 
-    summary_html = f"""
-    <div class="summary">
+        if i == 0:
+            is_day_icon = sunrise_hm <= now_hm <= sunset_hm
+        else:
+            is_day_icon = True
+
+        icon = weather_icon_html(code, is_day=is_day_icon, size=64, use_meteocons=use_meteocons) if code is not None else ""
+
+        if i == 0 and hourly.get("temperature_2m"):
+            remaining = range(current_hour, 24)
+            h_temps = [hourly["temperature_2m"][j] for j in remaining if hourly["temperature_2m"][j] is not None]
+            h_uv    = [hourly["uv_index"][j] for j in remaining if hourly.get("uv_index") and hourly["uv_index"][j] is not None]
+            tmax = max(h_temps) if h_temps else daily["temperature_2m_max"][0]
+            tmin = min(h_temps) if h_temps else daily["temperature_2m_min"][0]
+            uv   = max(h_uv) if h_uv else daily["uv_index_max"][0]
+        else:
+            tmax = daily["temperature_2m_max"][i]
+            tmin = daily["temperature_2m_min"][i]
+            uv   = daily["uv_index_max"][i]
+
+        active = "active" if i == 0 else ""
+        summary_panels += f"""
+    <div class="summary {active}" id="summary-{i}">
         <div class="summary-left">
-            <div class="summary-icon">{today_icon}</div>
-            <div class="summary-desc">{today_desc}</div>
+            <div class="summary-icon">{icon}</div>
+            <div class="summary-desc">{desc}</div>
         </div>
-        <div class="summary-temp">{today_max:.0f}°<span class="summary-min">/{today_min:.0f}°C</span></div>
+        <div class="summary-temp">{tmax:.0f}°<span class="summary-min">/{tmin:.0f}°C</span></div>
         <div class="summary-details">
-            <span>🌅 {today_sunrise}</span>
-            <span>🌇 {today_sunset}</span>
-            <span>🕶️ UV {today_uv:.0f}</span>
+            <span>🌅 {sunrise}</span>
+            <span>🌇 {sunset}</span>
+            {f'<span>🕶️ UV {uv:.0f}</span>' if uv is not None else ''}
         </div>
     </div>"""
 
@@ -278,7 +289,7 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         generated_at=generated_at,
         primary_model_label=model_label(model),
         precip_model_label=model_label(precip_model) if precip_model else None,
-        summary_html=summary_html,
+        summary_panels=summary_panels,
         day_cards=day_cards,
         hourly_panels=hourly_panels,
     )

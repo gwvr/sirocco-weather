@@ -56,7 +56,8 @@
         .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
 
         /* Summary */
-        .summary {
+        .summary { display: none; }
+        .summary.active {
             background: var(--surface);
             border-radius: 8px;
             padding: 1rem 1.5rem;
@@ -214,7 +215,7 @@
         <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">Dark mode</button>
     </header>
 
-    [[ summary_html | safe ]]
+    [[ summary_panels | safe ]]
 
     <div class="daily-strip">
         [[ day_cards | safe ]]
@@ -246,6 +247,7 @@
 
     function selectDay(index) {
         document.querySelectorAll('.day-card').forEach((c, i) => c.classList.toggle('active', i === index));
+        document.querySelectorAll('.summary').forEach((s, i) => s.classList.toggle('active', i === index));
         document.querySelectorAll('.hourly-panel').forEach((p, i) => {
             p.classList.toggle('active', i === index);
             if (i === index) { syncRowHeights(p); scrollToWorkingDay(p); }
