@@ -1,15 +1,14 @@
 # Agent Instructions
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+This project uses **tk** for issue tracking. Tickets are markdown files in `.tickets/`.
 
 ## Quick Reference
 
 ```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --claim  # Claim work atomically
-bd close <id>         # Complete work
-bd dolt push          # Push beads data to remote
+tk ready              # Find available work
+tk show <id>          # View issue details
+tk start <id>         # Claim/start work
+tk close <id>         # Complete work
 ```
 
 ## Non-Interactive Shell Commands
@@ -36,44 +35,29 @@ cp -rf source dest          # NOT: cp -r source dest
 - `apt-get` - use `-y` flag
 - `brew` - use `HOMEBREW_NO_AUTO_UPDATE=1` env var
 
-<!-- BEGIN BEADS INTEGRATION profile:full hash:d4f96305 -->
-## Issue Tracking with bd (beads)
+## Issue Tracking with tk
 
-**IMPORTANT**: This project uses **bd (beads)** for ALL issue tracking. Do NOT use markdown TODOs, task lists, or other tracking methods.
-
-### Why bd?
-
-- Dependency-aware: Track blockers and relationships between issues
-- Git-friendly: Dolt-powered version control with native sync
-- Agent-optimized: JSON output, ready work detection, discovered-from links
-- Prevents duplicate tracking systems and confusion
+**IMPORTANT**: This project uses **tk** for ALL issue tracking. Do NOT use markdown TODOs, task lists, or other tracking methods.
 
 ### Quick Start
 
 **Check for ready work:**
 
 ```bash
-bd ready --json
+tk ready
 ```
 
 **Create new issues:**
 
 ```bash
-bd create "Issue title" --description="Detailed context" -t bug|feature|task -p 0-4 --json
-bd create "Issue title" --description="What this issue is about" -p 1 --deps discovered-from:bd-123 --json
+tk create "Issue title" -t bug|feature|task|epic|chore -p 0-4 -d "Detailed context"
 ```
 
-**Claim and update:**
+**Start and complete work:**
 
 ```bash
-bd update <id> --claim --json
-bd update bd-42 --priority 1 --json
-```
-
-**Complete work:**
-
-```bash
-bd close bd-42 --reason "Completed" --json
+tk start <id>
+tk close <id>
 ```
 
 ### Issue Types
@@ -94,41 +78,28 @@ bd close bd-42 --reason "Completed" --json
 
 ### Workflow for AI Agents
 
-1. **Check ready work**: `bd ready --json` shows unblocked issues
-2. **Create branch**: `git checkout -b fix/Weather-xyz` (use `feat/` for features/tasks)
-3. **Claim atomically**: `bd update Weather-xyz --claim --json`
+1. **Check ready work**: `tk ready` shows unblocked issues
+2. **Create branch**: `git checkout -b fix/Wea-xyz` (use `feat/` for features/tasks)
+3. **Start ticket**: `tk start Wea-xyz`
 4. **Implement and test**: Make changes, run `uv run pytest`
-5. **Discover new work?** Create linked issue:
-   - `bd create "Found bug" --description="Details" -p 1 --deps discovered-from:Weather-xyz --json`
-6. **Generate output**: `uv run main.py` to produce `forecast.html`
+5. **Discover new work?** Create a linked ticket before continuing
+6. **Generate output**: `uv run sirocco` to produce `forecast.html`
 7. **Signal for review**: Tell the user to open `forecast.html` in their browser and **wait for approval**
-8. **After approval — merge**:
+8. **After approval — merge and close**:
    ```bash
    git checkout main
-   git merge --no-ff fix/Weather-xyz
-   git branch -d fix/Weather-xyz
+   git merge --no-ff fix/Wea-xyz -m "Merge fix/Wea-xyz: brief description"
+   git branch -d fix/Wea-xyz
+   tk close Wea-xyz
    ```
-9. **Close the issue**: `bd close Weather-xyz`
-
-### Auto-Sync
-
-bd automatically syncs via Dolt:
-
-- Each write auto-commits to Dolt history
-- Use `bd dolt push`/`bd dolt pull` for remote sync
-- No manual export/import needed!
 
 ### Important Rules
 
-- ✅ Use bd for ALL task tracking
-- ✅ Always use `--json` flag for programmatic use
-- ✅ Link discovered work with `discovered-from` dependencies
-- ✅ Check `bd ready` before asking "what should I work on?"
+- ✅ Use tk for ALL task tracking
+- ✅ Check `tk ready` before asking "what should I work on?"
+- ✅ Create a ticket before starting any work item
 - ❌ Do NOT create markdown TODO lists
-- ❌ Do NOT use external issue trackers
-- ❌ Do NOT duplicate tracking systems
-
-For more details, see README.md and docs/QUICKSTART.md.
+- ❌ Do NOT use beads (`bd`) — it has been retired
 
 ## Landing the Plane (Session Completion)
 
@@ -136,27 +107,21 @@ For more details, see README.md and docs/QUICKSTART.md.
 
 **MANDATORY WORKFLOW:**
 
-1. **File issues for remaining work** — Create issues for anything that needs follow-up
+1. **File issues for remaining work** — Create tk tickets for anything that needs follow-up
 2. **Run quality gates** (if code changed):
    ```bash
    uv run pytest
    ```
 3. **Commit all work** — Ensure the current branch is clean
-4. **If mid-branch (not yet merged)**: Leave the branch in place; note the branch name and issue ID in handoff
-5. **Sync beads**:
-   ```bash
-   bd dolt push
-   ```
-6. **Push to remote** (only if a remote is configured):
+4. **If mid-branch (not yet merged)**: Leave the branch in place; note the branch name and ticket ID in handoff
+5. **Push to remote** (only if a remote is configured):
    ```bash
    git remote | grep -q . && git push || echo "No remote configured — skipping push"
    ```
-7. **Hand off** — State current branch, issue ID, and what still needs doing
+6. **Hand off** — State current branch, ticket ID, and what still needs doing
 
 **CRITICAL RULES:**
 - NEVER merge without user approval of `forecast.html`
 - NEVER fast-forward merge — always use `--no-ff`
-- NEVER close a beads issue before the branch is merged and deleted
+- NEVER close a tk ticket before the branch is merged and deleted
 - If mid-issue at session end, leave the branch intact — do not abandon work on `main`
-
-<!-- END BEADS INTEGRATION -->

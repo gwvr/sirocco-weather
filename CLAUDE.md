@@ -57,30 +57,30 @@ The Python version is pinned in `.python-version`. Dependencies are declared in 
 
 ## 5. Git Workflow
 
-This project uses a **branch-per-issue** workflow. Each beads issue gets its own branch, merged back to `main` after visual approval of `forecast.html`.
+This project uses a **branch-per-issue** workflow. Each tk ticket gets its own branch, merged back to `main` after visual approval of `forecast.html`.
 
 ### Branch naming
 
 | Issue type | Prefix | Example |
 |---|---|---|
-| bug, chore | `fix/` | `fix/Weather-meo` |
-| feature, task, epic | `feat/` | `feat/Weather-5wh` |
+| bug, chore | `fix/` | `fix/Wea-abc` |
+| feature, task, epic | `feat/` | `feat/Wea-abc` |
 
-The full beads ID is the branch slug.
+The tk ticket ID is the branch slug.
 
 ### Starting work on an issue
 
 ```bash
-git checkout -b fix/Weather-xyz   # create branch first
-bd update Weather-xyz --claim     # then claim
+git checkout -b fix/Wea-xyz   # create branch first
+tk start Wea-xyz              # then mark in progress
 ```
 
 ### Commit message format
 
-Include the beads ID in parentheses at the end:
+Include the tk ticket ID in parentheses at the end:
 
 ```
-fix: short description of what changed (Weather-xyz)
+fix: short description of what changed (Wea-xyz)
 ```
 
 ### Signalling readiness for review
@@ -96,9 +96,9 @@ Then tell the user to open `forecast.html` in their browser and **wait for appro
 
 ```bash
 git checkout main
-git merge --no-ff fix/Weather-xyz -m "Merge fix/Weather-xyz: brief description of what was fixed and how"
-git branch -d fix/Weather-xyz
-bd close Weather-xyz
+git merge --no-ff fix/Wea-xyz -m "Merge fix/Wea-xyz: brief description of what was fixed and how"
+git branch -d fix/Wea-xyz
+tk close Wea-xyz
 ```
 
 The merge message should summarise the issue and solution in 1–2 sentences, so `git log --oneline` is informative without digging into individual commits.
@@ -108,16 +108,16 @@ The merge message should summarise the issue and solution in 1–2 sentences, so
 Switch back to the branch, fix, regenerate, and ask for re-review:
 
 ```bash
-git checkout fix/Weather-xyz
+git checkout fix/Wea-xyz
 # ... make changes ...
 uv run sirocco && uv run pytest
-git commit -m "fix: address feedback (Weather-xyz)"
+git commit -m "fix: address feedback (Wea-xyz)"
 # then signal for review again
 ```
 
 ---
 
-## 6. Issue Tracking (Beads)
+## 6. Issue Tracking (tk)
 
 @AGENTS.md
 
@@ -131,3 +131,22 @@ git commit -m "fix: address feedback (Weather-xyz)"
 - [ ] API key management (environment variables, `.env` file, etc.)
 - [ ] Config file format and location
 - [ ] Any rate limits or usage notes
+
+
+## Issue Tracker (tk)
+
+This project uses **tk** for issue tracking. Tickets are markdown files in `.tickets/`.
+
+### Quick Reference
+
+```bash
+tk ready              # Find available work
+tk show <id>          # View issue details
+tk start <id>         # Claim/start work
+tk close <id>         # Complete work
+```
+
+### Rules
+
+- Use `tk` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
+- Do NOT use beads (`bd`) — it has been retired
