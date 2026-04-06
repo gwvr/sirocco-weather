@@ -92,6 +92,14 @@ def wind_compass(degrees: float) -> str:
     return dirs[round(degrees / 22.5) % 16]
 
 
+def wind_arrow_scale(speed: float | None) -> float:
+    """Scale wind speed to arrow font-size multiplier (0.6 to 2.0rem)."""
+    if speed is None or speed < 0:
+        return 1.0
+    # Scale 0-50 kmh to 0.6-2.0 multiplier
+    return min(0.6 + (speed / 25), 2.0)
+
+
 def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: str | None = None, wind_units: str = "kmh", lat: float = DEFAULT_LATITUDE, lon: float = DEFAULT_LONGITUDE, precip_model: str | None = None, icons: str = "meteocons") -> str:
     daily = data["daily"]
     hourly = data.get("hourly", {})
@@ -209,10 +217,10 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         temp_cells     = "".join(f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_temps)
         feels_cells    = "".join(f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_feels)
         wdir_cells     = "".join(
-            f'<td><div class="wind-arrow" style="transform:rotate({(d + 180) % 360:.0f}deg)">↑</div>'
+            f'<td><div class="wind-arrow" style="transform:rotate({(d + 180) % 360:.0f}deg); font-size:{wind_arrow_scale(w)}rem">↑</div>'
             f'<div class="wind-cmp">{wind_compass(d)}</div></td>'
             if d is not None else "<td>—</td>"
-            for d in h_wdir
+            for d, w in zip(h_wdir, h_wind)
         )
         wind_cells     = "".join(_cell(w, ".0f") for w in h_wind)
         gust_cells     = "".join(_cell(g, ".0f") for g in h_gusts)
