@@ -65,6 +65,16 @@ def temp_color(t: float) -> str:
     return "tc-10"
 
 
+def precip_color(p: float) -> str | None:
+    """Return a CSS class for precipitation probability, or None if negligible."""
+    if p < 10:  return None
+    if p < 30:  return "pc-0"
+    if p < 50:  return "pc-1"
+    if p < 70:  return "pc-2"
+    if p < 90:  return "pc-3"
+    return "pc-4"
+
+
 def uv_color(uv: float) -> str:
     """Return a CSS class name for the WHO UV index band."""
     if uv < 3:  return "uvc-0"   # green
@@ -219,7 +229,11 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
             if c is not None else "<td>—</td>"
             for c, t in zip(h_codes, h_times)
         )
-        precip_cells   = "".join(_cell(p, ".0f", "%") for p in h_precip)
+        precip_cells   = "".join(
+            f'<td class="{precip_color(p)} tinted">{p:.0f}%</td>' if precip_color(p) else _cell(p, ".0f", "%")
+            if p is not None else "<td>—</td>"
+            for p in h_precip
+        )
         temp_cells     = "".join(f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_temps)
         feels_cells    = "".join(f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_feels)
         wdir_cells     = "".join(

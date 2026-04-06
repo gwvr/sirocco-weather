@@ -155,6 +155,20 @@
         .uvc-3 { background: #f8cbc3 } /* red    — very high*/
         .uvc-4 { background: #ecd9e8 } /* violet — extreme  */
 
+        /* Precipitation probability colour scale */
+        .pc-0 { background: #dbeeff } /* 10–29% — very light blue */
+        .pc-1 { background: #aad4f7 } /* 30–49% — light blue      */
+        .pc-2 { background: #6aaee0 } /* 50–69% — medium blue     */
+        .pc-3 { background: #3a87c8 } /* 70–89% — strong blue     */
+        .pc-4 { background: #1a5fa0; color: #fff } /* 90–100% — deep blue */
+
+        /* Precipitation — dark mode overrides (more saturated to avoid grey appearance) */
+        [data-theme="dark"] .pc-0 { background: #1a3f60; color: #c8dff0 }
+        [data-theme="dark"] .pc-1 { background: #1a5280; color: #d0e8f8 }
+        [data-theme="dark"] .pc-2 { background: #1568a8; color: #e0f0ff }
+        [data-theme="dark"] .pc-3 { background: #1080d0; color: #e8f4ff }
+        [data-theme="dark"] .pc-4 { background: #0a98f0; color: #fff    }
+
         .tinted { color: #222 }
 
         footer {
