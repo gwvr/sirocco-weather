@@ -28,3 +28,6 @@ forecast.html
 .claude/
 
 .beads_bak
+
+# tk issue tracker (local-only)
+.tickets/
