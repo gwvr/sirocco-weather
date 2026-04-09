@@ -52,39 +52,60 @@ def model_label(model: str | None) -> str:
 
 def temp_color(t: float) -> str:
     """Return a CSS class name for the temperature band."""
-    if t < -10: return "tc-0"
-    if t < -5:  return "tc-1"
-    if t < 0:   return "tc-2"
-    if t < 5:   return "tc-3"
-    if t < 10:  return "tc-4"
-    if t < 15:  return "tc-5"
-    if t < 20:  return "tc-6"
-    if t < 25:  return "tc-7"
-    if t < 30:  return "tc-8"
-    if t < 35:  return "tc-9"
+    if t < -10:
+        return "tc-0"
+    if t < -5:
+        return "tc-1"
+    if t < 0:
+        return "tc-2"
+    if t < 5:
+        return "tc-3"
+    if t < 10:
+        return "tc-4"
+    if t < 15:
+        return "tc-5"
+    if t < 20:
+        return "tc-6"
+    if t < 25:
+        return "tc-7"
+    if t < 30:
+        return "tc-8"
+    if t < 35:
+        return "tc-9"
     return "tc-10"
 
 
 def precip_color(p: float) -> str | None:
     """Return a CSS class for precipitation probability, or None if negligible."""
-    if p < 10:  return None
-    if p < 30:  return "pc-0"
-    if p < 50:  return "pc-1"
-    if p < 70:  return "pc-2"
-    if p < 90:  return "pc-3"
+    if p < 10:
+        return None
+    if p < 30:
+        return "pc-0"
+    if p < 50:
+        return "pc-1"
+    if p < 70:
+        return "pc-2"
+    if p < 90:
+        return "pc-3"
     return "pc-4"
 
 
 def uv_color(uv: float) -> str:
     """Return a CSS class name for the WHO UV index band."""
-    if uv < 3:  return "uvc-0"   # green
-    if uv < 6:  return "uvc-1"   # yellow
-    if uv < 8:  return "uvc-2"   # orange
-    if uv < 11: return "uvc-3"   # red
-    return "uvc-4"                # violet
+    if uv < 3:
+        return "uvc-0"  # green
+    if uv < 6:
+        return "uvc-1"  # yellow
+    if uv < 8:
+        return "uvc-2"  # orange
+    if uv < 11:
+        return "uvc-3"  # red
+    return "uvc-4"  # violet
 
 
-def weather_icon_html(wmo_code: int, is_day: bool = True, size: int = 32, use_meteocons: bool = True) -> str:
+def weather_icon_html(
+    wmo_code: int, is_day: bool = True, size: int = 32, use_meteocons: bool = True
+) -> str:
     """Return an <img> tag for Meteocons, or emoji if use_meteocons is False / code is unknown."""
     _, emoji = wmo_description(wmo_code)
     if not use_meteocons:
@@ -102,8 +123,24 @@ def detail_icon(name: str, size: int = 24) -> str:
 
 
 def wind_compass(degrees: float) -> str:
-    dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-            "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+    dirs = [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+    ]
     return dirs[round(degrees / 22.5) % 16]
 
 
@@ -113,15 +150,24 @@ def wind_arrow_char(speed: float | None) -> str:
         return "↑"
     speed = round(speed)
     if speed < 10:
-        return "↑"    # calm/light — standard
+        return "↑"  # calm/light — standard
     if speed < 20:
-        return "⇑"    # moderate — double
+        return "⇑"  # moderate — double
     if speed < 30:
-        return "⬆"    # fresh — heavy filled
-    return "⬆⬆"      # strong — doubled heavy
+        return "⬆"  # fresh — heavy filled
+    return "⬆⬆"  # strong — doubled heavy
 
 
-def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: str | None = None, wind_units: str = "kmh", lat: float = DEFAULT_LATITUDE, lon: float = DEFAULT_LONGITUDE, precip_model: str | None = None, icons: str = "meteocons") -> str:
+def build_html(
+    data: dict,
+    location_name: str = DEFAULT_LOCATION_NAME,
+    model: str | None = None,
+    wind_units: str = "kmh",
+    lat: float = DEFAULT_LATITUDE,
+    lon: float = DEFAULT_LONGITUDE,
+    precip_model: str | None = None,
+    icons: str = "meteocons",
+) -> str:
     daily = data["daily"]
     hourly = data.get("hourly", {})
     dates = daily["time"]
@@ -130,48 +176,68 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
 
     # --- Summary panels (one per day) ---
     current_hour = datetime.now().hour
-    use_meteocons = (icons == "meteocons")
-    now_hm = datetime.now().strftime("%H:%M")
+    use_meteocons = icons == "meteocons"
 
     summary_panels = ""
     for i in range(n_days):
         code = daily["weather_code"][i]
         desc, _ = wmo_description(code)
         sunrise_hm = daily["sunrise"][i][11:16]
-        sunset_hm  = daily["sunset"][i][11:16]
-        sunrise    = format_time(daily["sunrise"][i])
-        sunset     = format_time(daily["sunset"][i])
-
-        if i == 0:
-            is_day_icon = sunrise_hm <= now_hm <= sunset_hm
-        else:
-            is_day_icon = True
-
-        icon = weather_icon_html(code, is_day=is_day_icon, size=64, use_meteocons=use_meteocons) if code is not None else ""
+        sunset_hm = daily["sunset"][i][11:16]
+        sunrise = format_time(daily["sunrise"][i])
+        sunset = format_time(daily["sunset"][i])
 
         day_start = i * 24
-        h_slice   = range(day_start + (current_hour if i == 0 else 0), day_start + 24)
+        h_slice = range(day_start + (current_hour if i == 0 else 0), day_start + 24)
 
         if hourly.get("temperature_2m"):
-            h_temps  = [hourly["temperature_2m"][j]  for j in h_slice if hourly["temperature_2m"][j]  is not None]
-            h_gusts    = [hourly["wind_gusts_10m"][j]   for j in h_slice if hourly.get("wind_gusts_10m") and hourly["wind_gusts_10m"][j] is not None]
-            h_precip   = [hourly["precipitation_probability"][j] for j in h_slice if hourly.get("precipitation_probability") and hourly["precipitation_probability"][j] is not None]
-            h_humidity = [hourly["relative_humidity_2m"][j] for j in h_slice if hourly.get("relative_humidity_2m") and hourly["relative_humidity_2m"][j] is not None]
-            tmax        = max(h_temps)  if h_temps  else daily["temperature_2m_max"][i]
-            tmin        = min(h_temps)  if h_temps  else daily["temperature_2m_min"][i]
+            h_temps = [
+                hourly["temperature_2m"][j]
+                for j in h_slice
+                if hourly["temperature_2m"][j] is not None
+            ]
+            h_gusts = [
+                hourly["wind_gusts_10m"][j]
+                for j in h_slice
+                if hourly.get("wind_gusts_10m") and hourly["wind_gusts_10m"][j] is not None
+            ]
+            h_precip = [
+                hourly["precipitation_probability"][j]
+                for j in h_slice
+                if hourly.get("precipitation_probability")
+                and hourly["precipitation_probability"][j] is not None
+            ]
+            h_humidity = [
+                hourly["relative_humidity_2m"][j]
+                for j in h_slice
+                if hourly.get("relative_humidity_2m")
+                and hourly["relative_humidity_2m"][j] is not None
+            ]
+            tmax = max(h_temps) if h_temps else daily["temperature_2m_max"][i]
+            tmin = min(h_temps) if h_temps else daily["temperature_2m_min"][i]
             # Only show UV if all daylight hours have data
             times = hourly.get("time", [])
-            daylight_uv = [hourly["uv_index"][j] for j in h_slice if hourly.get("uv_index") and j < len(times) and sunrise_hm <= times[j][11:16] <= sunset_hm]
-            uv = max(daylight_uv) if daylight_uv and all(v is not None for v in daylight_uv) else None
-            max_gust     = max(h_gusts)    if h_gusts    else None
-            max_precip   = max(h_precip)   if h_precip   else None
+            daylight_uv = [
+                hourly["uv_index"][j]
+                for j in h_slice
+                if hourly.get("uv_index")
+                and j < len(times)
+                and sunrise_hm <= times[j][11:16] <= sunset_hm
+            ]
+            uv = (
+                max(daylight_uv)
+                if daylight_uv and all(v is not None for v in daylight_uv)
+                else None
+            )
+            max_gust = max(h_gusts) if h_gusts else None
+            max_precip = max(h_precip) if h_precip else None
             max_humidity = max(h_humidity) if h_humidity else None
         else:
-            tmax       = daily["temperature_2m_max"][i]
-            tmin       = daily["temperature_2m_min"][i]
-            uv         = daily["uv_index_max"][i]
-            max_gust     = None
-            max_precip   = None
+            tmax = daily["temperature_2m_max"][i]
+            tmin = daily["temperature_2m_min"][i]
+            uv = daily["uv_index_max"][i]
+            max_gust = None
+            max_precip = None
             max_humidity = None
 
         active = "active" if i == 0 else ""
@@ -181,10 +247,10 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         <div class="summary-details">
             <span>{detail_icon("sunrise")} {sunrise}</span>
             <span>{detail_icon("sunset")} {sunset}</span>
-            {f'<span>{detail_icon("wind-beaufort-0")} {max_gust:.0f} {wind_units}</span>' if max_gust is not None else ''}
-            {f'<span>{detail_icon("rain")} {max_precip:.0f}%</span>' if max_precip is not None else ''}
-            {f'<span>{detail_icon("humidity")} {max_humidity:.0f}%</span>' if max_humidity is not None else ''}
-            {f'<span>{detail_icon(f"uv-index-{max(1, min(int(uv), 11))}")} UV {uv:.0f}</span>' if uv is not None else ''}
+            {f"<span>{detail_icon('wind-beaufort-0')} {max_gust:.0f} {wind_units}</span>" if max_gust is not None else ""}
+            {f"<span>{detail_icon('rain')} {max_precip:.0f}%</span>" if max_precip is not None else ""}
+            {f"<span>{detail_icon('humidity')} {max_humidity:.0f}%</span>" if max_humidity is not None else ""}
+            {f"<span>{detail_icon(f'uv-index-{max(1, min(int(uv), 11))}')} UV {uv:.0f}</span>" if uv is not None else ""}
         </div>
     </div>"""
 
@@ -193,7 +259,11 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
     for i in range(n_days):
         weekday, short_date = format_date(dates[i])
         code = daily["weather_code"][i]
-        day_icon = weather_icon_html(code, is_day=True, size=36, use_meteocons=use_meteocons) if code is not None else ""
+        day_icon = (
+            weather_icon_html(code, is_day=True, size=36, use_meteocons=use_meteocons)
+            if code is not None
+            else ""
+        )
         tmax = daily["temperature_2m_max"][i]
         tmin = daily["temperature_2m_min"][i]
         active = "active" if i == 0 else ""
@@ -207,21 +277,24 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         </div>"""
 
     # --- Hourly panels (one per day, pre-rendered) ---
-    def _cell(v, fmt_str, suffix=""): return f"<td>{format(v, fmt_str)}{suffix}</td>" if v is not None else "<td>—</td>"
-    def _lbl(full, short): return f'<td class="row-label"><span class="lbl-full">{full}</span><span class="lbl-short">{short}</span></td>'
+    def _cell(v, fmt_str, suffix=""):
+        return f"<td>{format(v, fmt_str)}{suffix}</td>" if v is not None else "<td>—</td>"
+
+    def _lbl(full, short):
+        return f'<td class="row-label"><span class="lbl-full">{full}</span><span class="lbl-short">{short}</span></td>'
 
     label_table = f"""<table class="hourly hourly-labels">
             <thead><tr><th class="row-label"></th></tr></thead>
             <tbody>
-                <tr>{_lbl('Symbol', 'Symbol')}</tr>
-                <tr>{_lbl('Chance of precipitation', 'Precipitation')}</tr>
-                <tr>{_lbl('Temperature (°C)', 'Temp (°C)')}</tr>
-                <tr>{_lbl('Feels like (°C)', 'Feels like')}</tr>
-                <tr>{_lbl('Wind direction', 'Direction')}</tr>
-                <tr>{_lbl(f'Wind speed ({wind_units})', f'Wind ({wind_units})')}</tr>
-                <tr>{_lbl(f'Wind gust ({wind_units})', f'Gusts ({wind_units})')}</tr>
-                <tr>{_lbl('Humidity', 'Humidity')}</tr>
-                <tr>{_lbl('UV', 'UV')}</tr>
+                <tr>{_lbl("Symbol", "Symbol")}</tr>
+                <tr>{_lbl("Chance of precipitation", "Precipitation")}</tr>
+                <tr>{_lbl("Temperature (°C)", "Temp (°C)")}</tr>
+                <tr>{_lbl("Feels like (°C)", "Feels like")}</tr>
+                <tr>{_lbl("Wind direction", "Direction")}</tr>
+                <tr>{_lbl(f"Wind speed ({wind_units})", f"Wind ({wind_units})")}</tr>
+                <tr>{_lbl(f"Wind gust ({wind_units})", f"Gusts ({wind_units})")}</tr>
+                <tr>{_lbl("Humidity", "Humidity")}</tr>
+                <tr>{_lbl("UV", "UV")}</tr>
             </tbody>
         </table>"""
 
@@ -239,41 +312,55 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
             continue
 
         sunrise_hm = daily["sunrise"][day_i][11:16]
-        sunset_hm  = daily["sunset"][day_i][11:16]
+        sunset_hm = daily["sunset"][day_i][11:16]
 
-        h_codes   = hourly.get("weather_code", [])[start:end]
-        h_temps   = hourly.get("temperature_2m", [])[start:end]
-        h_feels   = hourly.get("apparent_temperature", [])[start:end]
-        h_precip  = hourly.get("precipitation_probability", [])[start:end]
-        h_wind    = hourly.get("wind_speed_10m", [])[start:end]
-        h_wdir    = hourly.get("wind_direction_10m", [])[start:end]
-        h_gusts   = hourly.get("wind_gusts_10m", [])[start:end]
+        h_codes = hourly.get("weather_code", [])[start:end]
+        h_temps = hourly.get("temperature_2m", [])[start:end]
+        h_feels = hourly.get("apparent_temperature", [])[start:end]
+        h_precip = hourly.get("precipitation_probability", [])[start:end]
+        h_wind = hourly.get("wind_speed_10m", [])[start:end]
+        h_wdir = hourly.get("wind_direction_10m", [])[start:end]
+        h_gusts = hourly.get("wind_gusts_10m", [])[start:end]
         h_humidity = hourly.get("relative_humidity_2m", [])[start:end]
-        h_uv      = hourly.get("uv_index", [])[start:end]
+        h_uv = hourly.get("uv_index", [])[start:end]
 
-        time_cells    = "".join(f"<th>{t[11:16]}</th>" for t in h_times)
-        symbol_cells   = "".join(
-            f'<td>{weather_icon_html(c, is_day=sunrise_hm <= t[11:16] <= sunset_hm, size=20, use_meteocons=use_meteocons)}</td>'
-            if c is not None else "<td>—</td>"
+        time_cells = "".join(f"<th>{t[11:16]}</th>" for t in h_times)
+        symbol_cells = "".join(
+            f"<td>{weather_icon_html(c, is_day=sunrise_hm <= t[11:16] <= sunset_hm, size=20, use_meteocons=use_meteocons)}</td>"
+            if c is not None
+            else "<td>—</td>"
             for c, t in zip(h_codes, h_times)
         )
-        precip_cells   = "".join(
-            f'<td class="{precip_color(p)} tinted">{p:.0f}%</td>' if precip_color(p) else _cell(p, ".0f", "%")
-            if p is not None else "<td>—</td>"
+        precip_cells = "".join(
+            f'<td class="{precip_color(p)} tinted">{p:.0f}%</td>'
+            if precip_color(p)
+            else _cell(p, ".0f", "%")
+            if p is not None
+            else "<td>—</td>"
             for p in h_precip
         )
-        temp_cells     = "".join(f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_temps)
-        feels_cells    = "".join(f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>" for t in h_feels)
-        wdir_cells     = "".join(
+        temp_cells = "".join(
+            f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>"
+            for t in h_temps
+        )
+        feels_cells = "".join(
+            f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>"
+            for t in h_feels
+        )
+        wdir_cells = "".join(
             f'<td><div class="wind-arrow" style="transform:rotate({(d + 180) % 360:.0f}deg)">{wind_arrow_char(g)}</div>'
             f'<div class="wind-cmp">{wind_compass(d)}</div></td>'
-            if d is not None else "<td>—</td>"
+            if d is not None
+            else "<td>—</td>"
             for d, w, g in zip(h_wdir, h_wind, h_gusts)
         )
-        wind_cells     = "".join(_cell(w, ".0f") for w in h_wind)
-        gust_cells     = "".join(_cell(g, ".0f") for g in h_gusts)
+        wind_cells = "".join(_cell(w, ".0f") for w in h_wind)
+        gust_cells = "".join(_cell(g, ".0f") for g in h_gusts)
         humidity_cells = "".join(_cell(h, ".0f", "%") for h in h_humidity)
-        uv_cells       = "".join(f'<td class="{uv_color(u)} tinted">{u:.0f}</td>' if u is not None else "<td>—</td>" for u in h_uv)
+        uv_cells = "".join(
+            f'<td class="{uv_color(u)} tinted">{u:.0f}</td>' if u is not None else "<td>—</td>"
+            for u in h_uv
+        )
 
         hourly_panels += f"""
         <div class="hourly-panel {active}" id="day-{day_i}">
