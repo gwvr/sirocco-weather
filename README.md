@@ -84,3 +84,9 @@ uv run pytest       # run tests
 uv run main.py      # regenerate forecast.html
 ```
 
+After cloning, install the pre-commit hook to catch lint errors before commit:
+
+```bash
+uvx pre-commit install
+```
+
