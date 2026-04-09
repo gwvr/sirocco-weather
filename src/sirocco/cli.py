@@ -29,8 +29,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--timezone")
     parser.add_argument("--name", metavar="NAME", dest="location_name")
     parser.add_argument("--output", default=OUTPUT_FILE, metavar="FILE")
-    parser.add_argument("--icons", default="meteocons", choices=["meteocons", "emoji"],
-                        help="Icon set to use (default: meteocons)")
+    parser.add_argument(
+        "--icons",
+        default="meteocons",
+        choices=["meteocons", "emoji"],
+        help="Icon set to use (default: meteocons)",
+    )
     return parser.parse_args()
 
 
@@ -62,7 +66,9 @@ def main():
 
     if precip_model:
         print(f"Fetching precipitation probability from {precip_model}...")
-        data["hourly"]["precipitation_probability"] = fetch_precip_probability(lat, lon, timezone, precip_model)
+        data["hourly"]["precipitation_probability"] = fetch_precip_probability(
+            lat, lon, timezone, precip_model
+        )
 
     icons = loc.get("icons", args.icons)
     html = build_html(data, location_name, model, wind_units, lat, lon, precip_model, icons)
