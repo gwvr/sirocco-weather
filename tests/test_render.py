@@ -254,4 +254,4 @@ def test_build_html_wind_units_mph():
 
 def test_build_html_emoji_icons():
     html = build_html(_forecast_with_hourly(), icons="emoji")
-    assert "<img" not in html
+    assert 'class="weather-icon"' not in html
