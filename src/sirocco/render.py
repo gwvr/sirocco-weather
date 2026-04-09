@@ -131,7 +131,6 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
     # --- Summary panels (one per day) ---
     current_hour = datetime.now().hour
     use_meteocons = (icons == "meteocons")
-    now_hm = datetime.now().strftime("%H:%M")
 
     summary_panels = ""
     for i in range(n_days):
@@ -141,13 +140,6 @@ def build_html(data: dict, location_name: str = DEFAULT_LOCATION_NAME, model: st
         sunset_hm  = daily["sunset"][i][11:16]
         sunrise    = format_time(daily["sunrise"][i])
         sunset     = format_time(daily["sunset"][i])
-
-        if i == 0:
-            is_day_icon = sunrise_hm <= now_hm <= sunset_hm
-        else:
-            is_day_icon = True
-
-        icon = weather_icon_html(code, is_day=is_day_icon, size=64, use_meteocons=use_meteocons) if code is not None else ""
 
         day_start = i * 24
         h_slice   = range(day_start + (current_hour if i == 0 else 0), day_start + 24)
