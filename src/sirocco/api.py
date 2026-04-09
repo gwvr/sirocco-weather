@@ -18,7 +18,13 @@ def fetch_precip_probability(latitude: float, longitude: float, timezone: str, m
     return response.json()["hourly"]["precipitation_probability"]
 
 
-def fetch_forecast(latitude: float, longitude: float, timezone: str, model: str | None = None, wind_units: str = "kmh") -> dict:
+def fetch_forecast(
+    latitude: float,
+    longitude: float,
+    timezone: str,
+    model: str | None = None,
+    wind_units: str = "kmh",
+) -> dict:
     params = {
         "latitude": latitude,
         "longitude": longitude,
