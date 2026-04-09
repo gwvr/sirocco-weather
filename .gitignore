@@ -30,4 +30,5 @@ forecast.html
 .beads_bak
 
 # tk issue tracker (local-only)
-.tickets/
+.tickets
+.tickets_bak
