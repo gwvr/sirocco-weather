@@ -9,10 +9,6 @@ wheels/
 # Virtual environments
 .venv
 
-# Dolt database files (added by bd init)
-.dolt/
-*.db
-
 # Test artefacts
 .coverage
 
@@ -24,11 +20,8 @@ forecast.html
 !templates/*.html
 !src/sirocco/templates/*.html
 
-# Claude Code local settings
-.claude/
+# Claude Code local settings (machine-specific overrides)
+.claude/settings.local.json
 
-.beads_bak
-
-# tk issue tracker (local-only)
+# tk issue tracker
 .tickets
-.tickets_bak
