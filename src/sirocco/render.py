@@ -10,6 +10,7 @@ from .config import (
     METEOCON_BASE,
     METEOCON_ICONS,
     MODEL_LABELS,
+    MODEL_URLS,
     WMO_CODES,
 )
 
@@ -413,13 +414,18 @@ def build_html(
         </div>"""
 
     template = _env.get_template("forecast.html")
+    primary_model_lbl = model_label(model)
+    precip_model_lbl = model_label(precip_model) if precip_model else None
+
     return template.render(
         location_name=location_name,
         lat=lat,
         lon=lon,
         generated_at=generated_at,
-        primary_model_label=model_label(model),
-        precip_model_label=model_label(precip_model) if precip_model else None,
+        primary_model_label=primary_model_lbl,
+        primary_model_url=MODEL_URLS.get(primary_model_lbl),
+        precip_model_label=precip_model_lbl,
+        precip_model_url=MODEL_URLS.get(precip_model_lbl) if precip_model_lbl else None,
         summary_panels=summary_panels,
         day_cards=day_cards,
         hourly_panels=hourly_panels,
