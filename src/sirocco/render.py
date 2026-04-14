@@ -145,6 +145,21 @@ def wind_compass(degrees: float) -> str:
     return dirs[round(degrees / 22.5) % 16]
 
 
+def get_daytime_weather_code(
+    hourly_codes: list, hourly_times: list, sunrise_time: str, sunset_time: str
+) -> int | None:
+    """Get the most severe weather code during daytime hours (between sunrise and sunset)."""
+    if not hourly_codes or not hourly_times:
+        return None
+
+    daytime_codes = [
+        code for code, time in zip(hourly_codes, hourly_times)
+        if code is not None and sunrise_time <= time[11:16] <= sunset_time
+    ]
+
+    return max(daytime_codes) if daytime_codes else None
+
+
 def wind_arrow_char(speed: float | None) -> str:
     """Return an arrow character scaled to wind speed tier."""
     if speed is None:
@@ -272,7 +287,19 @@ def build_html(
     day_cards = ""
     for i in range(n_days):
         weekday, short_date = format_date(dates[i])
-        code = daily["weather_code"][i]
+        sunrise_hm = daily["sunrise"][i][11:16]
+        sunset_hm = daily["sunset"][i][11:16]
+
+        # Use daytime weather code instead of full 24-hour code
+        day_start = i * 24 + daily_to_hourly_offset
+        h_times = hourly.get("time", [])[day_start : day_start + 24]
+        h_codes = hourly.get("weather_code", [])[day_start : day_start + 24]
+        code = get_daytime_weather_code(h_codes, h_times, sunrise_hm, sunset_hm)
+
+        # Fallback to daily code if no daytime codes available
+        if code is None:
+            code = daily["weather_code"][i]
+
         day_icon = (
             weather_icon_html(code, is_day=True, size=36, use_meteocons=use_meteocons)
             if code is not None
