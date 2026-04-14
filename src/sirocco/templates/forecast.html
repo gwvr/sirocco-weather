@@ -131,6 +131,11 @@
             border-right: 2px solid var(--border-strong);
         }
 
+        /* Current hour visual separator */
+        table.hourly th.now, table.hourly td.now {
+            border-left: 3px solid var(--accent);
+        }
+
         .weather-icon { display: block; margin: 0 auto; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.4)); }
         .detail-icon { vertical-align: middle; margin-right: 0.1rem; }
         .summary-icon { line-height: 1; }
@@ -237,9 +242,16 @@
         });
     }
 
-    function scrollToWorkingDay(panel) {
+    function scrollToCurrentHour(panel) {
         const scroll = panel.querySelector('.hourly-scroll');
         if (!scroll) return;
+        // Try to scroll to the current hour (marked with .now class)
+        const currentHour = panel.querySelector('.hourly-data thead th.now');
+        if (currentHour) {
+            scroll.scrollLeft = currentHour.offsetLeft - scroll.offsetWidth / 4;
+            return;
+        }
+        // Fallback: scroll to 09:00 for non-current days
         const target = Array.from(panel.querySelectorAll('.hourly-data thead th'))
             .find(th => th.textContent.trim() >= '09:00');
         if (target) scroll.scrollLeft = target.offsetLeft;
@@ -250,7 +262,7 @@
         document.querySelectorAll('.summary').forEach((s, i) => s.classList.toggle('active', i === index));
         document.querySelectorAll('.hourly-panel').forEach((p, i) => {
             p.classList.toggle('active', i === index);
-            if (i === index) { syncRowHeights(p); scrollToWorkingDay(p); }
+            if (i === index) { syncRowHeights(p); scrollToCurrentHour(p); }
         });
     }
 
@@ -260,7 +272,7 @@
         const dark = saved ? saved === 'dark' : prefersDark;
         applyTheme(dark);
         const active = document.querySelector('.hourly-panel.active');
-        if (active) { syncRowHeights(active); scrollToWorkingDay(active); }
+        if (active) { syncRowHeights(active); scrollToCurrentHour(active); }
     })();
 
     function applyTheme(dark) {

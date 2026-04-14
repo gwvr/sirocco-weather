@@ -200,9 +200,8 @@ def build_html(
         sunset = format_time(daily["sunset"][i])
 
         day_start = i * 24 + daily_to_hourly_offset
-        # For the first day, only show from current hour onwards; for others show all 24 hours
-        h_slice_start = day_start + (current_hour if i == 0 and is_first_day_today else 0)
-        h_slice = range(h_slice_start, day_start + 24)
+        # Show all 24 hours for each day; we'll mark the current hour visually
+        h_slice = range(day_start, day_start + 24)
 
         if hourly.get("temperature_2m"):
             h_temps = [
@@ -315,10 +314,13 @@ def build_html(
     hourly_panels = ""
     for day_i in range(n_days):
         day_start = day_i * 24 + daily_to_hourly_offset
-        # For the first day, only show from current hour onwards; for others show all 24 hours
-        start = day_start + (current_hour if day_i == 0 and is_first_day_today else 0)
+        # Show all 24 hours for each day
+        start = day_start
         end = day_start + 24
         h_times = hourly.get("time", [])[start:end]
+
+        # Mark the current hour for visual separator (only for today)
+        current_hour_index = current_hour if day_i == 0 and is_first_day_today else None
 
         active = "active" if day_i == 0 else ""
 
@@ -339,42 +341,52 @@ def build_html(
         h_humidity = hourly.get("relative_humidity_2m", [])[start:end]
         h_uv = hourly.get("uv_index", [])[start:end]
 
-        time_cells = "".join(f"<th>{t[11:16]}</th>" for t in h_times)
-        symbol_cells = "".join(
-            f"<td>{weather_icon_html(c, is_day=sunrise_hm <= t[11:16] <= sunset_hm, size=20, use_meteocons=use_meteocons)}</td>"
-            if c is not None
-            else "<td>—</td>"
-            for c, t in zip(h_codes, h_times)
+        time_cells = "".join(
+            f'<th{"" if current_hour_index is None or i != current_hour_index else " class=\"now\""}'
+            f'>{t[11:16]}</th>'
+            for i, t in enumerate(h_times)
         )
+        symbol_cells = "".join(
+            f'<td{"" if current_hour_index is None or i != current_hour_index else " class=\"now\""}>'
+            f'{weather_icon_html(c, is_day=sunrise_hm <= t[11:16] <= sunset_hm, size=20, use_meteocons=use_meteocons)}</td>'
+            if c is not None
+            else f'<td{"" if current_hour_index is None or i != current_hour_index else " class=\"now\""}>—</td>'
+            for i, (c, t) in enumerate(zip(h_codes, h_times))
+        )
+        def _cell_with_marker(v, fmt_str, suffix="", idx=None):
+            now_class = f' now' if current_hour_index is not None and idx == current_hour_index else ''
+            return f"<td class=\"{now_class}\"{''if now_class else ''}>{format(v, fmt_str)}{suffix}</td>" if v is not None else f'<td class="{now_class}">—</td>'
+
         precip_cells = "".join(
-            f'<td class="{precip_color(p)} tinted">{p:.0f}%</td>'
+            f'<td class="{precip_color(p)}{" now" if current_hour_index is not None and i == current_hour_index else ""} tinted">{p:.0f}%</td>'
             if precip_color(p)
-            else _cell(p, ".0f", "%")
+            else f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>{format(p, ".0f")}%</td>'
             if p is not None
-            else "<td>—</td>"
-            for p in h_precip
+            else f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>—</td>'
+            for i, p in enumerate(h_precip)
         )
         temp_cells = "".join(
-            f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>"
-            for t in h_temps
+            f'<td class="{temp_color(t)}{" now" if current_hour_index is not None and i == current_hour_index else ""} tinted">{t:.0f}°</td>' if t is not None else f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>—</td>'
+            for i, t in enumerate(h_temps)
         )
         feels_cells = "".join(
-            f'<td class="{temp_color(t)} tinted">{t:.0f}°</td>' if t is not None else "<td>—</td>"
-            for t in h_feels
+            f'<td class="{temp_color(t)}{" now" if current_hour_index is not None and i == current_hour_index else ""} tinted">{t:.0f}°</td>' if t is not None else f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>—</td>'
+            for i, t in enumerate(h_feels)
         )
         wdir_cells = "".join(
-            f'<td><div class="wind-arrow" style="transform:rotate({(d + 180) % 360:.0f}deg)">{wind_arrow_char(g)}</div>'
+            f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>'
+            f'<div class="wind-arrow" style="transform:rotate({(d + 180) % 360:.0f}deg)">{wind_arrow_char(g)}</div>'
             f'<div class="wind-cmp">{wind_compass(d)}</div></td>'
             if d is not None
-            else "<td>—</td>"
-            for d, w, g in zip(h_wdir, h_wind, h_gusts)
+            else f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>—</td>'
+            for i, (d, w, g) in enumerate(zip(h_wdir, h_wind, h_gusts))
         )
-        wind_cells = "".join(_cell(w, ".0f") for w in h_wind)
-        gust_cells = "".join(_cell(g, ".0f") for g in h_gusts)
-        humidity_cells = "".join(_cell(h, ".0f", "%") for h in h_humidity)
+        wind_cells = "".join(f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>{format(w, ".0f")}</td>' if w is not None else f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>—</td>' for i, w in enumerate(h_wind))
+        gust_cells = "".join(f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>{format(g, ".0f")}</td>' if g is not None else f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>—</td>' for i, g in enumerate(h_gusts))
+        humidity_cells = "".join(f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>{format(h, ".0f")}%</td>' if h is not None else f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>—</td>' for i, h in enumerate(h_humidity))
         uv_cells = "".join(
-            f'<td class="{uv_color(u)} tinted">{u:.0f}</td>' if u is not None else "<td>—</td>"
-            for u in h_uv
+            f'<td class="{uv_color(u)}{" now" if current_hour_index is not None and i == current_hour_index else ""} tinted">{u:.0f}</td>' if u is not None else f'<td{" class=\"now\"" if current_hour_index is not None and i == current_hour_index else ""}>—</td>'
+            for i, u in enumerate(h_uv)
         )
 
         hourly_panels += f"""
