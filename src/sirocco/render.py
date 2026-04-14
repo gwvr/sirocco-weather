@@ -210,17 +210,35 @@ def build_html(
     current_hour = datetime.now().hour
     use_meteocons = icons == "meteocons"
 
-    # Check if the first daily forecast date is today or tomorrow.
-    # Open-Meteo API returns daily forecast starting from tomorrow,
-    # but hourly data includes today's remaining hours.
+    # Check if the first daily forecast date is today.
     today = datetime.now().date()
     first_forecast_date = datetime.strptime(dates[0], "%Y-%m-%d").date()
     is_first_day_today = first_forecast_date == today
 
     # Calculate the hour offset for hourly data slicing.
-    # If first daily date is tomorrow, we need to offset by 24 hours
-    # to account for today's remaining hours in the hourly array.
-    daily_to_hourly_offset = 0 if is_first_day_today else (24 - current_hour)
+    # Open-Meteo API returns daily forecast starting from today or tomorrow,
+    # and hourly data starting from the beginning of today (or sometimes the current hour).
+    # We find where the first daily date appears in the hourly time array to align them.
+    daily_to_hourly_offset = 0
+    if "time" in hourly:
+        try:
+            # Match the first daily date to the first corresponding hourly entry.
+            # Usually, dates[0] is either today or tomorrow.
+            target = f"{dates[0]}T00:00"
+            if target in hourly["time"]:
+                daily_to_hourly_offset = hourly["time"].index(target)
+            else:
+                # Fallback: search for the first hour of that date
+                for idx, t in enumerate(hourly["time"]):
+                    if t.startswith(dates[0]):
+                        daily_to_hourly_offset = idx
+                        break
+        except (ValueError, IndexError):
+            # Fallback for manual/legacy offset calculation
+            daily_to_hourly_offset = 0 if is_first_day_today else (24 - current_hour)
+    else:
+        # Fallback for manual/legacy offset calculation if hourly["time"] is missing
+        daily_to_hourly_offset = 0 if is_first_day_today else (24 - current_hour)
 
     summary_panels = ""
     for i in range(n_days):
@@ -401,7 +419,7 @@ def build_html(
 
         def _cell_with_marker(v, fmt_str, suffix="", idx=None):
             now_class = (
-                f" now" if current_hour_index is not None and idx == current_hour_index else ""
+                " now" if current_hour_index is not None and idx == current_hour_index else ""
             )
             return (
                 f'<td class="{now_class}">{format(v, fmt_str)}{suffix}</td>'
