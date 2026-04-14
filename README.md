@@ -90,3 +90,10 @@ After cloning, install the pre-commit hook to catch lint errors before commit:
 uvx pre-commit install
 ```
 
+---
+
+## Credits
+
+- **Weather data:** [Open-Meteo](https://open-meteo.com/) (free, open-source weather API)
+- **Weather icons:** [Meteocons](https://meteocons.com/) by Bas Milius (MIT License)
+
