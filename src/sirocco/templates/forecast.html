@@ -208,10 +208,7 @@
 </head>
 <body>
     <header>
-        <div>
-            <h1><a class="map-link" href="https://www.openstreetmap.org/?mlat=[[ lat ]]&mlon=[[ lon ]]&zoom=12" target="_blank">📍 [[ location_name ]]</a></h1>
-            <p class="generated">Generated [[ generated_at ]] &mdash; Data from [[ primary_model_label ]][% if precip_model_label %] &amp; [[ precip_model_label ]] (precip.)[% endif %] via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
-        </div>
+        <h1><a class="map-link" href="https://www.openstreetmap.org/?mlat=[[ lat ]]&mlon=[[ lon ]]&zoom=12" target="_blank">📍 [[ location_name ]]</a></h1>
         <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">Dark mode</button>
     </header>
 
@@ -223,6 +220,8 @@
     </div>
 
     [[ hourly_panels | safe ]]
+
+    <p class="generated">Generated [[ generated_at ]] &mdash; Data from [[ primary_model_label ]][% if precip_model_label %] &amp; [[ precip_model_label ]] (precip.)[% endif %] via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a></p>
 
     <script>
     function syncRowHeights(panel) {
