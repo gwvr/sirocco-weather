@@ -178,6 +178,18 @@ def build_html(
     current_hour = datetime.now().hour
     use_meteocons = icons == "meteocons"
 
+    # Check if the first daily forecast date is today or tomorrow.
+    # Open-Meteo API returns daily forecast starting from tomorrow,
+    # but hourly data includes today's remaining hours.
+    today = datetime.now().date()
+    first_forecast_date = datetime.strptime(dates[0], "%Y-%m-%d").date()
+    is_first_day_today = first_forecast_date == today
+
+    # Calculate the hour offset for hourly data slicing.
+    # If first daily date is tomorrow, we need to offset by 24 hours
+    # to account for today's remaining hours in the hourly array.
+    daily_to_hourly_offset = 0 if is_first_day_today else (24 - current_hour)
+
     summary_panels = ""
     for i in range(n_days):
         code = daily["weather_code"][i]
@@ -187,8 +199,10 @@ def build_html(
         sunrise = format_time(daily["sunrise"][i])
         sunset = format_time(daily["sunset"][i])
 
-        day_start = i * 24
-        h_slice = range(day_start + (current_hour if i == 0 else 0), day_start + 24)
+        day_start = i * 24 + daily_to_hourly_offset
+        # For the first day, only show from current hour onwards; for others show all 24 hours
+        h_slice_start = day_start + (current_hour if i == 0 and is_first_day_today else 0)
+        h_slice = range(h_slice_start, day_start + 24)
 
         if hourly.get("temperature_2m"):
             h_temps = [
@@ -300,8 +314,9 @@ def build_html(
 
     hourly_panels = ""
     for day_i in range(n_days):
-        day_start = day_i * 24
-        start = day_start + (current_hour if day_i == 0 else 0)
+        day_start = day_i * 24 + daily_to_hourly_offset
+        # For the first day, only show from current hour onwards; for others show all 24 hours
+        start = day_start + (current_hour if day_i == 0 and is_first_day_today else 0)
         end = day_start + 24
         h_times = hourly.get("time", [])[start:end]
 
