@@ -103,9 +103,8 @@ tk close <id>
 - ✅ Always wait for the user to review `forecast.html` before committing, merging, or closing a ticket
 - ❌ Do NOT commit or close a ticket before the user has approved the visual output
 - ❌ Do NOT create markdown TODO lists
-- ❌ Do NOT use beads (`bd`) — it has been retired
 
-## Landing the Plane (Session Completion)
+## Session Completion
 
 **When ending a work session**, complete ALL steps below.
 

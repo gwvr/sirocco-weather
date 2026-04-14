@@ -118,7 +118,7 @@ def weather_icon_html(
 
 
 def detail_icon(name: str, size: int = 24) -> str:
-    """Return an inline <img> for a named Basmilius weather icon."""
+    """Return an inline <img> for a named Meteocons icon."""
     return f'<img src="{METEOCON_BASE}/{name}.svg" width="{size}" height="{size}" class="detail-icon" alt="">'
 
 
