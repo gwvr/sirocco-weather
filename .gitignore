@@ -27,3 +27,12 @@ forecast.html
 .tickets
 
 BugShots
+
+# AI tool config dirs
+.agents
+.codex
+.claude
+.gemini
+.opencode
+.pi
+.vibe
