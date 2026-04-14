@@ -46,7 +46,7 @@ jobs:
       - run: uv run sirocco
       - name: Prepare pages artifact
         run: |
-          mkdir _site
+          mkdir -p _site/static
           cp forecast.html _site/index.html
           cp -r static/icons _site/static/icons
       - uses: actions/upload-pages-artifact@v3
