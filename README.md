@@ -28,7 +28,7 @@ Requires Python 3.13+ and [uv](https://docs.astral.sh/uv/).
 ```bash
 git clone https://github.com/gwvr/sirocco-weather.git
 cd sirocco-weather
-uv run main.py
+uv run sirocco
 ```
 
 Open `forecast.html` in your browser.
@@ -56,13 +56,13 @@ locations:
 Multiple locations are supported. Switch between them with `--location`:
 
 ```bash
-uv run main.py --location london
+uv run sirocco --location london
 ```
 
 Or pass coordinates directly without a config file:
 
 ```bash
-uv run main.py --lat 51.5074 --lon -0.1278 --name "London, UK"
+uv run sirocco --lat 51.5074 --lon -0.1278 --name "London, UK"
 ```
 
 ### Weather models
@@ -81,7 +81,7 @@ Open-Meteo supports several forecast models. Notable options:
 
 ```bash
 uv run pytest       # run tests
-uv run main.py      # regenerate forecast.html
+uv run sirocco      # regenerate forecast.html
 ```
 
 After cloning, install the pre-commit hook to catch lint errors before commit:
