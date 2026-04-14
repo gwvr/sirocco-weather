@@ -154,40 +154,24 @@ def get_daytime_weather_code(
 ) -> int | None:
     """Get representative daytime weather code.
 
-    Returns the most common daytime code, unless significant precipitation (>50% for 2+ hours)
-    occurs, in which case returns the worst code from the rainy period.
+    Returns the most common (modal) daytime code.
     """
     if not hourly_codes or not hourly_times:
         return None
 
+    from collections import Counter
+
     # Filter to daytime hours
-    daytime_data = [
-        (code, precip)
-        for code, time, precip in zip(hourly_codes, hourly_times, hourly_precip or [])
+    daytime_codes = [
+        code
+        for code, time in zip(hourly_codes, hourly_times)
         if code is not None and sunrise_time <= time[11:16] <= sunset_time
     ]
 
-    if not daytime_data:
+    if not daytime_codes:
         return None
 
-    daytime_codes, daytime_precips = zip(*daytime_data)
-
-    # Check for 2+ consecutive hours with >50% precipitation
-    rainy_hours = []
-    for i, precip in enumerate(daytime_precips):
-        if precip is not None and precip > 50:
-            rainy_hours.append(i)
-
-    # If we have 2+ consecutive rainy hours, use worst code from those hours
-    if len(rainy_hours) >= 2:
-        for i in range(len(rainy_hours) - 1):
-            if rainy_hours[i + 1] - rainy_hours[i] == 1:  # Consecutive
-                rainy_codes = [daytime_codes[j] for j in rainy_hours]
-                return max(rainy_codes)
-
-    # Otherwise, return the most common (modal) daytime code
-    from collections import Counter
-
+    # Return the most common (modal) daytime code
     code_counts = Counter(daytime_codes)
     return code_counts.most_common(1)[0][0]
 
