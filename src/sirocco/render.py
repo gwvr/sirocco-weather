@@ -146,18 +146,49 @@ def wind_compass(degrees: float) -> str:
 
 
 def get_daytime_weather_code(
-    hourly_codes: list, hourly_times: list, sunrise_time: str, sunset_time: str
+    hourly_codes: list,
+    hourly_times: list,
+    hourly_precip: list,
+    sunrise_time: str,
+    sunset_time: str,
 ) -> int | None:
-    """Get the most severe weather code during daytime hours (between sunrise and sunset)."""
+    """Get representative daytime weather code.
+
+    Returns the most common daytime code, unless significant precipitation (>50% for 2+ hours)
+    occurs, in which case returns the worst code from the rainy period.
+    """
     if not hourly_codes or not hourly_times:
         return None
 
-    daytime_codes = [
-        code for code, time in zip(hourly_codes, hourly_times)
+    # Filter to daytime hours
+    daytime_data = [
+        (code, precip)
+        for code, time, precip in zip(hourly_codes, hourly_times, hourly_precip or [])
         if code is not None and sunrise_time <= time[11:16] <= sunset_time
     ]
 
-    return max(daytime_codes) if daytime_codes else None
+    if not daytime_data:
+        return None
+
+    daytime_codes, daytime_precips = zip(*daytime_data)
+
+    # Check for 2+ consecutive hours with >50% precipitation
+    rainy_hours = []
+    for i, precip in enumerate(daytime_precips):
+        if precip is not None and precip > 50:
+            rainy_hours.append(i)
+
+    # If we have 2+ consecutive rainy hours, use worst code from those hours
+    if len(rainy_hours) >= 2:
+        for i in range(len(rainy_hours) - 1):
+            if rainy_hours[i + 1] - rainy_hours[i] == 1:  # Consecutive
+                rainy_codes = [daytime_codes[j] for j in rainy_hours]
+                return max(rainy_codes)
+
+    # Otherwise, return the most common (modal) daytime code
+    from collections import Counter
+    code_counts = Counter(daytime_codes)
+    return code_counts.most_common(1)[0][0]
 
 
 def wind_arrow_char(speed: float | None) -> str:
@@ -290,11 +321,12 @@ def build_html(
         sunrise_hm = daily["sunrise"][i][11:16]
         sunset_hm = daily["sunset"][i][11:16]
 
-        # Use daytime weather code instead of full 24-hour code
+        # Use modal daytime weather code, with precipitation weighting
         day_start = i * 24 + daily_to_hourly_offset
         h_times = hourly.get("time", [])[day_start : day_start + 24]
         h_codes = hourly.get("weather_code", [])[day_start : day_start + 24]
-        code = get_daytime_weather_code(h_codes, h_times, sunrise_hm, sunset_hm)
+        h_precip = hourly.get("precipitation_probability", [])[day_start : day_start + 24]
+        code = get_daytime_weather_code(h_codes, h_times, h_precip, sunrise_hm, sunset_hm)
 
         # Fallback to daily code if no daytime codes available
         if code is None:
