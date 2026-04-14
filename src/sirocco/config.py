@@ -4,7 +4,7 @@ DEFAULT_TIMEZONE = "Europe/London"
 DEFAULT_LOCATION_NAME = "London, UK"
 
 API_URL = "https://api.open-meteo.com/v1/forecast"
-METEOCON_BASE = "https://bmcdn.nl/assets/weather-icons/v3.0/fill/svg"
+METEOCON_BASE = "static/icons"
 
 DAILY_VARIABLES = [
     "weather_code",
