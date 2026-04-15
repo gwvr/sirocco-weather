@@ -245,15 +245,18 @@
     function scrollToCurrentHour(panel) {
         const scroll = panel.querySelector('.hourly-scroll');
         if (!scroll) return;
-        // Try to scroll to the current hour (marked with .now class)
+        const hours = Array.from(panel.querySelectorAll('.hourly-data thead th'));
+        // Today: keep the current hour only if it is after 10:00.
         const currentHour = panel.querySelector('.hourly-data thead th.now');
         if (currentHour) {
-            scroll.scrollLeft = currentHour.offsetLeft - scroll.offsetWidth / 4;
-            return;
+            const currentLabel = currentHour.textContent.trim();
+            if (currentLabel >= '10:00') {
+                scroll.scrollLeft = currentHour.offsetLeft - scroll.offsetWidth / 4;
+                return;
+            }
         }
-        // Fallback: scroll to 09:00 for non-current days
-        const target = Array.from(panel.querySelectorAll('.hourly-data thead th'))
-            .find(th => th.textContent.trim() >= '09:00');
+        // Default: scroll to 10:00, or the first later hour if 10:00 is missing.
+        const target = hours.find(th => th.textContent.trim() >= '10:00');
         if (target) scroll.scrollLeft = target.offsetLeft;
     }
 
