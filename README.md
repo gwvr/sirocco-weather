@@ -4,7 +4,7 @@ A clean, fast, self-contained weather forecast page. No cookie banners. No upsel
 
 Built as a direct response to the creeping enshittification of the Met Office and BBC weather apps.
 
-Vibe-coded with [Claude](https://claude.ai) and tracked with [Beads](https://beads.sh).
+Vibe-coded with [Claude](https://claude.ai) and tracked with [ticket](https://github.com/wedow/ticket) (earlier work tracked with [beads](https://beads.sh)).
 
 **[Live forecast →](https://gwvr.github.io/sirocco-weather/)**
 
