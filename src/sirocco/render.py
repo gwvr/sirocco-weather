@@ -294,14 +294,14 @@ def build_html(
             )
             max_gust = max(h_gusts) if h_gusts else None
             max_precip = max(h_precip) if h_precip else None
-            max_humidity = max(h_humidity) if h_humidity else None
+            min_humidity = min(h_humidity) if h_humidity else None
         else:
             tmax = daily["temperature_2m_max"][i]
             tmin = daily["temperature_2m_min"][i]
             uv = daily["uv_index_max"][i]
             max_gust = None
             max_precip = None
-            max_humidity = None
+            min_humidity = None
 
         active = "active" if i == 0 else ""
         summary_panels += f"""
@@ -312,7 +312,7 @@ def build_html(
             <span>{detail_icon("sunset")} {sunset}</span>
             {f"<span>{detail_icon('wind-beaufort-0')} {max_gust:.0f} {wind_units}</span>" if max_gust is not None else ""}
             {f"<span>{detail_icon('rain')} {max_precip:.0f}%</span>" if max_precip is not None else ""}
-            {f"<span>{detail_icon('humidity')} {max_humidity:.0f}%</span>" if max_humidity is not None else ""}
+            {f"<span>{detail_icon('humidity')} {min_humidity:.0f}%</span>" if min_humidity is not None else ""}
             {f"<span>{detail_icon(f'uv-index-{max(1, min(int(uv), 11))}')} UV {uv:.0f}</span>" if uv is not None else ""}
         </div>
     </div>"""
