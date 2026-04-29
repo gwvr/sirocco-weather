@@ -76,8 +76,10 @@ def temp_color(t: float) -> str:
     return "tc-10"
 
 
-def precip_color(p: float) -> str | None:
+def precip_color(p: float | None) -> str | None:
     """Return a CSS class for precipitation probability, or None if negligible."""
+    if p is None:
+        return None
     if p < 10:
         return None
     if p < 30:

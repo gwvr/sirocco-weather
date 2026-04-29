@@ -96,6 +96,7 @@ MODEL_LABELS = {
     "ukmo_seamless": "UK Met Office",
     "ukmo_global": "UK Met Office",
     "ukmo_uk_deterministic": "UK Met Office",
+    "ukmo_datahub": "Met Office DataHub",
     "ecmwf_ifs025": "ECMWF",
     "ecmwf_ifs04": "ECMWF",
     "ecmwf_aifs025": "ECMWF",
@@ -104,4 +105,5 @@ MODEL_LABELS = {
 MODEL_URLS = {
     "UK Met Office": "https://open-meteo.com/en/docs/ukmo-api",
     "ECMWF": "https://open-meteo.com/en/docs/ecmwf-api",
+    "Met Office DataHub": "https://datahub.metoffice.gov.uk",
 }

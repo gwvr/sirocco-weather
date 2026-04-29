@@ -226,7 +226,7 @@
 
     [[ hourly_panels | safe ]]
 
-    <p class="generated">Generated [[ generated_at ]] &mdash; Data from [% if primary_model_url %]<a href="[[ primary_model_url ]]" target="_blank">[[ primary_model_label ]]</a>[% else %][[ primary_model_label ]][% endif %][% if precip_model_label %] &amp; [% if precip_model_url %]<a href="[[ precip_model_url ]]" target="_blank">[[ precip_model_label ]]</a>[% else %][[ precip_model_label ]][% endif %] (precip.)[% endif %] via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a> &mdash; Weather icons by <a href="https://meteocons.com/" target="_blank">Meteocons</a> (MIT License)</p>
+    <p class="generated">Generated [[ generated_at ]] &mdash; Data from [% if primary_model_url %]<a href="[[ primary_model_url ]]" target="_blank">[[ primary_model_label ]]</a>[% else %][[ primary_model_label ]][% endif %] via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a>[% if precip_model_label %], precip. from [% if precip_model_url %]<a href="[[ precip_model_url ]]" target="_blank">[[ precip_model_label ]]</a>[% else %][[ precip_model_label ]][% endif %][% endif %] &mdash; Weather icons by <a href="https://meteocons.com/" target="_blank">Meteocons</a> (MIT License)</p>
 
     <script>
     function syncRowHeights(panel) {
