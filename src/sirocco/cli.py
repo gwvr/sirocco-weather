@@ -12,7 +12,9 @@ from .config import (
     DEFAULT_LATITUDE,
     DEFAULT_LOCATION_NAME,
     DEFAULT_LONGITUDE,
+    DEFAULT_THEME,
     DEFAULT_TIMEZONE,
+    THEMES,
 )
 from .render import build_html
 
@@ -45,6 +47,12 @@ def parse_args() -> argparse.Namespace:
             "emoji",
         ],
         help="Icon set to use (default: meteocons)",
+    )
+    parser.add_argument(
+        "--theme",
+        default=DEFAULT_THEME,
+        choices=list(THEMES.keys()),
+        help=f"UI theme (default: {DEFAULT_THEME})",
     )
     return parser.parse_args()
 
@@ -93,6 +101,7 @@ def main():
         ]
 
     icons = loc.get("icons", args.icons)
+    theme = loc.get("theme", args.theme)
     html = build_html(
         data,
         location_name,
@@ -103,6 +112,7 @@ def main():
         "ukmo_datahub" if datahub_key else None,
         icons,
         timezone,
+        theme,
     )
     output_path = Path(args.output)
     output_path.write_text(html, encoding="utf-8")
