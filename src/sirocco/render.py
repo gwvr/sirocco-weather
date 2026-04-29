@@ -7,6 +7,7 @@ from .config import (
     DEFAULT_LATITUDE,
     DEFAULT_LOCATION_NAME,
     DEFAULT_LONGITUDE,
+    ICON_SETS,
     METEOCON_BASE,
     METEOCON_ICONS,
     MODEL_LABELS,
@@ -78,6 +79,8 @@ def temp_color(t: float) -> str:
 
 def precip_color(p: float) -> str | None:
     """Return a CSS class for precipitation probability, or None if negligible."""
+    if p is None:
+        return None
     if p < 10:
         return None
     if p < 30:
@@ -105,17 +108,22 @@ def uv_color(uv: float) -> str:
 
 
 def weather_icon_html(
-    wmo_code: int, is_day: bool = True, size: int = 32, use_meteocons: bool = True
+    wmo_code: int,
+    is_day: bool = True,
+    size: int = 32,
+    use_meteocons: bool = True,
+    icon_base: str = METEOCON_BASE,
+    icon_mapping: dict = METEOCON_ICONS,
 ) -> str:
-    """Return an <img> tag for Meteocons, or emoji if use_meteocons is False / code is unknown."""
+    """Return an <img> tag for the active icon set, or emoji fallback."""
     _, emoji = wmo_description(wmo_code)
     if not use_meteocons:
         return emoji
-    icons = METEOCON_ICONS.get(wmo_code)
+    icons = icon_mapping.get(wmo_code)
     if not icons:
         return emoji
     name = icons[0] if is_day else icons[1]
-    return f'<img class="weather-icon" src="{METEOCON_BASE}/{name}.svg" alt="{emoji}" width="{size}" height="{size}">'
+    return f'<img class="weather-icon" src="{icon_base}/{name}.svg" alt="{emoji}" width="{size}" height="{size}">'
 
 
 def detail_icon(name: str, size: int = 24) -> str:
@@ -208,7 +216,8 @@ def build_html(
 
     # --- Summary panels (one per day) ---
     current_hour = datetime.now().hour
-    use_meteocons = icons == "meteocons"
+    use_meteocons = icons != "emoji"
+    icon_base, icon_mapping = ICON_SETS.get(icons, (METEOCON_BASE, METEOCON_ICONS))
 
     # Check if the first daily forecast date is today.
     today = datetime.now().date()
@@ -336,7 +345,14 @@ def build_html(
             code = daily["weather_code"][i]
 
         day_icon = (
-            weather_icon_html(code, is_day=True, size=36, use_meteocons=use_meteocons)
+            weather_icon_html(
+                code,
+                is_day=True,
+                size=36,
+                use_meteocons=use_meteocons,
+                icon_base=icon_base,
+                icon_mapping=icon_mapping,
+            )
             if code is not None
             else ""
         )
@@ -410,7 +426,7 @@ def build_html(
         )
         symbol_cells = "".join(
             (
-                f"""<td{"" if current_hour_index is None or i != current_hour_index else ' class="now"'}>{weather_icon_html(c, is_day=sunrise_hm <= t[11:16] <= sunset_hm, size=20, use_meteocons=use_meteocons)}</td>"""
+                f"""<td{"" if current_hour_index is None or i != current_hour_index else ' class="now"'}>{weather_icon_html(c, is_day=sunrise_hm <= t[11:16] <= sunset_hm, size=20, use_meteocons=use_meteocons, icon_base=icon_base, icon_mapping=icon_mapping)}</td>"""
                 if c is not None
                 else f"""<td{"" if current_hour_index is None or i != current_hour_index else ' class="now"'}>—</td>"""
             )
@@ -523,6 +539,15 @@ def build_html(
     primary_model_lbl = model_label(model)
     precip_model_lbl = model_label(precip_model) if precip_model else None
 
+    if icons.startswith("meteocons"):
+        icon_credit_html = (
+            '<a href="https://meteocons.com/" target="_blank">Meteocons</a> (MIT License)'
+        )
+    elif icons == "makin-things":
+        icon_credit_html = '<a href="https://github.com/Makin-Things/weather-icons" target="_blank">Makin-Things</a> (MIT License)'
+    else:
+        icon_credit_html = None
+
     return template.render(
         location_name=location_name,
         lat=lat,
@@ -535,4 +560,5 @@ def build_html(
         summary_panels=summary_panels,
         day_cards=day_cards,
         hourly_panels=hourly_panels,
+        icon_credit_html=icon_credit_html,
     )

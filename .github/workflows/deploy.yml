@@ -41,14 +41,19 @@ jobs:
               timezone: Europe/London
               model: ukmo_seamless
               wind_units: mph
-              precip_model: ecmwf_ifs025
+              icons: makin-things
           EOF
       - run: uv run sirocco
+        env:
+          MET_OFFICE_API_KEY: ${{ secrets.MET_OFFICE_API_KEY }}
       - name: Prepare pages artifact
         run: |
           mkdir -p _site/static
           cp forecast.html _site/index.html
           cp -r static/icons _site/static/icons
+          cp -r static/icons-fill _site/static/icons-fill
+          cp -r static/icons-flat _site/static/icons-flat
+          cp -r static/icons-makin _site/static/icons-makin
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
