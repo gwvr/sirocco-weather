@@ -1,9 +1,13 @@
 import argparse
+import os
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import yaml
+from dotenv import load_dotenv
 
-from .api import fetch_forecast, fetch_precip_probability
+from .api import fetch_forecast, fetch_precip_probability_datahub
 from .config import (
     DEFAULT_LATITUDE,
     DEFAULT_LOCATION_NAME,
@@ -39,6 +43,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main():
+    load_dotenv()
     args = parse_args()
 
     config_path = args.config or ("location.yaml" if Path("location.yaml").exists() else None)
@@ -59,19 +64,38 @@ def main():
     location_name = args.location_name or loc.get("name", DEFAULT_LOCATION_NAME)
     model = loc.get("model")
     wind_units = loc.get("wind_units", "kmh")
-    precip_model = loc.get("precip_model")
 
     print(f"Fetching forecast for {location_name}...")
     data = fetch_forecast(lat, lon, timezone, model, wind_units)
 
-    if precip_model:
-        print(f"Fetching precipitation probability from {precip_model}...")
-        data["hourly"]["precipitation_probability"] = fetch_precip_probability(
-            lat, lon, timezone, precip_model
-        )
+    datahub_key = os.environ.get("MET_OFFICE_API_KEY")
+    if datahub_key:
+        print("Fetching precipitation probability from Met Office DataHub...")
+        datahub_pp = fetch_precip_probability_datahub(lat, lon, datahub_key)
+        tz = ZoneInfo(timezone)
+        utc = ZoneInfo("UTC")
+        hourly_times = data["hourly"].get("time", [])
+        data["hourly"]["precipitation_probability"] = [
+            datahub_pp.get(
+                datetime.fromisoformat(t)
+                .replace(tzinfo=tz)
+                .astimezone(utc)
+                .strftime("%Y-%m-%dT%H:%MZ")
+            )
+            for t in hourly_times
+        ]
 
     icons = loc.get("icons", args.icons)
-    html = build_html(data, location_name, model, wind_units, lat, lon, precip_model, icons)
+    html = build_html(
+        data,
+        location_name,
+        model,
+        wind_units,
+        lat,
+        lon,
+        "ukmo_datahub" if datahub_key else None,
+        icons,
+    )
     output_path = Path(args.output)
     output_path.write_text(html, encoding="utf-8")
     print(f"Forecast written to {output_path.resolve()}")

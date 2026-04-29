@@ -15,6 +15,9 @@ wheels/
 # Personal location config (copy location.yaml.example to location.yaml)
 location.yaml
 
+# Secrets
+.env
+
 # Generated output
 forecast.html
 !templates/*.html
