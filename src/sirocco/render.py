@@ -245,6 +245,7 @@ def build_html(
     icons: str = "meteocons",
     timezone: str = DEFAULT_TIMEZONE,
     theme: str = DEFAULT_THEME,
+    per_day_step: list[int] | None = None,
 ) -> str:
     daily = data["daily"]
     hourly = data.get("hourly", {})
@@ -432,13 +433,19 @@ def build_html(
     hourly_panels = ""
     for day_i in range(n_days):
         day_start = day_i * 24 + daily_to_hourly_offset
-        # Show all 24 hours for each day
-        start = day_start
-        end = day_start + 24
-        h_times = hourly.get("time", [])[start:end]
+        step = (per_day_step[day_i] if per_day_step and day_i < len(per_day_step) else None) or 1
+        slots = 24 // step
+        indices = [day_start + j * step for j in range(slots)]
+        all_times = hourly.get("time", [])
+        indices = [k for k in indices if k < len(all_times)]
+        h_times = [all_times[k] for k in indices]
 
         # Mark the current hour for visual separator (only for today)
-        current_hour_index = current_hour if day_i == 0 and is_first_day_today else None
+        # For step>1, mark the slot whose time is nearest to the current hour.
+        if day_i == 0 and is_first_day_today:
+            current_hour_index = current_hour // step
+        else:
+            current_hour_index = None
 
         active = "active" if day_i == 0 else ""
 
@@ -449,15 +456,19 @@ def build_html(
         sunrise_hm = daily["sunrise"][day_i][11:16]
         sunset_hm = daily["sunset"][day_i][11:16]
 
-        h_codes = hourly.get("weather_code", [])[start:end]
-        h_temps = hourly.get("temperature_2m", [])[start:end]
-        h_feels = hourly.get("apparent_temperature", [])[start:end]
-        h_precip = hourly.get("precipitation_probability", [])[start:end]
-        h_wind = hourly.get("wind_speed_10m", [])[start:end]
-        h_wdir = hourly.get("wind_direction_10m", [])[start:end]
-        h_gusts = hourly.get("wind_gusts_10m", [])[start:end]
-        h_humidity = hourly.get("relative_humidity_2m", [])[start:end]
-        h_uv = hourly.get("uv_index", [])[start:end]
+        def _pick(key):
+            arr = hourly.get(key, [])
+            return [arr[k] if k < len(arr) else None for k in indices]
+
+        h_codes = _pick("weather_code")
+        h_temps = _pick("temperature_2m")
+        h_feels = _pick("apparent_temperature")
+        h_precip = _pick("precipitation_probability")
+        h_wind = _pick("wind_speed_10m")
+        h_wdir = _pick("wind_direction_10m")
+        h_gusts = _pick("wind_gusts_10m")
+        h_humidity = _pick("relative_humidity_2m")
+        h_uv = _pick("uv_index")
 
         time_cells = "".join(
             f"""<th{"" if current_hour_index is None or i != current_hour_index else ' class="now"'}>{t[11:16]}</th>"""
