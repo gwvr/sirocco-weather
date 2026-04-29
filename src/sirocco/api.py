@@ -2,6 +2,29 @@ import httpx
 
 from .config import API_URL, DAILY_VARIABLES, HOURLY_VARIABLES
 
+_DATAHUB_BASE = "https://data.hub.api.metoffice.gov.uk/sitespecific/v0/point"
+
+
+def fetch_datahub_threehourly(latitude: float, longitude: float, api_key: str) -> dict:
+    """Fetch three-hourly probOfPrecipitation from Met Office DataHub (7-day horizon).
+
+    Returns a dict keyed by UTC time string (e.g. '2026-04-29T18:00Z') mapping to
+    probability int, or an empty dict on any error.
+    """
+    try:
+        response = httpx.get(
+            f"{_DATAHUB_BASE}/three-hourly",
+            params={"latitude": latitude, "longitude": longitude},
+            headers={"apikey": api_key},
+            timeout=10,
+        )
+        response.raise_for_status()
+        time_series = response.json()["features"][0]["properties"]["timeSeries"]
+        return {entry["time"]: entry.get("probOfPrecipitation") for entry in time_series}
+    except Exception as e:
+        print(f"DataHub three-hourly fetch failed: {e} — extended precipitation will be blank")
+        return {}
+
 
 def fetch_precip_probability(latitude: float, longitude: float, timezone: str, model: str) -> list:
     """Fetch hourly precipitation_probability from a secondary model."""
@@ -24,10 +47,9 @@ def fetch_precip_probability_datahub(latitude: float, longitude: float, api_key:
     Returns a dict keyed by UTC time string (e.g. '2026-04-29T09:00Z') mapping
     to probability int, or an empty dict on any error.
     """
-    url = "https://data.hub.api.metoffice.gov.uk/sitespecific/v0/point/hourly"
     try:
         response = httpx.get(
-            url,
+            f"{_DATAHUB_BASE}/hourly",
             params={"latitude": latitude, "longitude": longitude},
             headers={"apikey": api_key},
             timeout=10,
