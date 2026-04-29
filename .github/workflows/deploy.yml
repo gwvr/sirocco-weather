@@ -41,9 +41,10 @@ jobs:
               timezone: Europe/London
               model: ukmo_seamless
               wind_units: mph
-              precip_model: ecmwf_ifs025
           EOF
       - run: uv run sirocco
+        env:
+          MET_OFFICE_API_KEY: ${{ secrets.MET_OFFICE_API_KEY }}
       - name: Prepare pages artifact
         run: |
           mkdir -p _site/static
