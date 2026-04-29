@@ -41,6 +41,7 @@ jobs:
               timezone: Europe/London
               model: ukmo_seamless
               wind_units: mph
+              icons: makin-things
           EOF
       - run: uv run sirocco
         env:
@@ -50,6 +51,9 @@ jobs:
           mkdir -p _site/static
           cp forecast.html _site/index.html
           cp -r static/icons _site/static/icons
+          cp -r static/icons-fill _site/static/icons-fill
+          cp -r static/icons-flat _site/static/icons-flat
+          cp -r static/icons-makin _site/static/icons-makin
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

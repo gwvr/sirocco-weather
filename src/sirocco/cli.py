@@ -36,7 +36,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--icons",
         default="meteocons",
-        choices=["meteocons", "emoji"],
+        choices=["meteocons", "meteocons-fill", "meteocons-flat", "makin-things", "emoji"],
         help="Icon set to use (default: meteocons)",
     )
     return parser.parse_args()

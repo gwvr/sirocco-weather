@@ -5,6 +5,9 @@ DEFAULT_LOCATION_NAME = "London, UK"
 
 API_URL = "https://api.open-meteo.com/v1/forecast"
 METEOCON_BASE = "static/icons"
+METEOCON_FILL_BASE = "static/icons-fill"
+METEOCON_FLAT_BASE = "static/icons-flat"
+MAKIN_THINGS_BASE = "static/icons-makin"
 
 DAILY_VARIABLES = [
     "weather_code",
@@ -29,6 +32,37 @@ HOURLY_VARIABLES = [
     "relative_humidity_2m",
     "uv_index",
 ]
+
+MAKIN_THINGS_ICONS = {
+    0: ("clear-day", "clear-night"),
+    1: ("cloudy-1-day", "cloudy-1-night"),
+    2: ("cloudy-2-day", "cloudy-2-night"),
+    3: ("cloudy-3-day", "cloudy-3-night"),
+    45: ("fog-day", "fog-night"),
+    48: ("fog-day", "fog-night"),
+    51: ("rainy-1-day", "rainy-1-night"),
+    53: ("rainy-1-day", "rainy-1-night"),
+    55: ("rainy-2-day", "rainy-2-night"),
+    56: ("rain-and-sleet-mix", "rain-and-sleet-mix"),
+    57: ("rain-and-sleet-mix", "rain-and-sleet-mix"),
+    61: ("rainy-1-day", "rainy-1-night"),
+    63: ("rainy-2-day", "rainy-2-night"),
+    65: ("rainy-3-day", "rainy-3-night"),
+    66: ("rain-and-sleet-mix", "rain-and-sleet-mix"),
+    67: ("rain-and-sleet-mix", "rain-and-sleet-mix"),
+    71: ("snowy-1-day", "snowy-1-night"),
+    73: ("snowy-2-day", "snowy-2-night"),
+    75: ("snowy-3-day", "snowy-3-night"),
+    77: ("snowy-1-day", "snowy-1-night"),
+    80: ("rainy-1-day", "rainy-1-night"),
+    81: ("rainy-2-day", "rainy-2-night"),
+    82: ("rainy-3-day", "rainy-3-night"),
+    85: ("snowy-1-day", "snowy-1-night"),
+    86: ("snowy-3-day", "snowy-3-night"),
+    95: ("scattered-thunderstorms-day", "scattered-thunderstorms-night"),
+    96: ("severe-thunderstorm", "severe-thunderstorm"),
+    99: ("severe-thunderstorm", "severe-thunderstorm"),
+}
 
 METEOCON_ICONS = {
     0: ("clear-day", "clear-night"),
@@ -59,6 +93,13 @@ METEOCON_ICONS = {
     95: ("thunderstorms-day", "thunderstorms-night"),
     96: ("thunderstorms-day-rain", "thunderstorms-night-rain"),
     99: ("thunderstorms-day-overcast-rain", "thunderstorms-night-overcast-rain"),
+}
+
+ICON_SETS = {
+    "meteocons": (METEOCON_BASE, METEOCON_ICONS),
+    "meteocons-fill": (METEOCON_FILL_BASE, METEOCON_ICONS),
+    "meteocons-flat": (METEOCON_FLAT_BASE, METEOCON_ICONS),
+    "makin-things": (MAKIN_THINGS_BASE, MAKIN_THINGS_ICONS),
 }
 
 WMO_CODES = {
