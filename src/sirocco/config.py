@@ -100,6 +100,19 @@ THEMES: dict[str, dict[str, str]] = {
         "--icon-color": "#a9b1d6",
     },
 }
+PROVIDERS: dict[str, dict] = {
+    "ecmwf": {
+        "label": "ECMWF",
+        "open_meteo_model": "ecmwf_ifs025",
+        "datahub": False,
+    },
+    "ukmo": {
+        "label": "UK Met Office",
+        "open_meteo_model": "ukmo_seamless",
+        "datahub": True,
+    },
+}
+
 METEOCON_BASE = "static/icons"
 METEOCON_FILL_BASE = "static/icons-fill"
 METEOCON_FLAT_BASE = "static/icons-flat"
