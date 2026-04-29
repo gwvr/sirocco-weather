@@ -95,6 +95,7 @@ def main():
         lon,
         "ukmo_datahub" if datahub_key else None,
         icons,
+        timezone,
     )
     output_path = Path(args.output)
     output_path.write_text(html, encoding="utf-8")
