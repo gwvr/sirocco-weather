@@ -1,5 +1,6 @@
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -7,6 +8,7 @@ from .config import (
     DEFAULT_LATITUDE,
     DEFAULT_LOCATION_NAME,
     DEFAULT_LONGITUDE,
+    DEFAULT_TIMEZONE,
     METEOCON_BASE,
     METEOCON_ICONS,
     MODEL_LABELS,
@@ -201,19 +203,21 @@ def build_html(
     lon: float = DEFAULT_LONGITUDE,
     precip_model: str | None = None,
     icons: str = "meteocons",
+    timezone: str = DEFAULT_TIMEZONE,
 ) -> str:
     daily = data["daily"]
     hourly = data.get("hourly", {})
     dates = daily["time"]
     n_days = len(dates)
-    generated_at = datetime.now().strftime("%d %b %Y at %H:%M")
+    _now = datetime.now(ZoneInfo(timezone))
+    generated_at = _now.strftime("%d %b %Y at %H:%M")
 
     # --- Summary panels (one per day) ---
-    current_hour = datetime.now().hour
+    current_hour = _now.hour
     use_meteocons = icons == "meteocons"
 
     # Check if the first daily forecast date is today.
-    today = datetime.now().date()
+    today = _now.date()
     first_forecast_date = datetime.strptime(dates[0], "%Y-%m-%d").date()
     is_first_day_today = first_forecast_date == today
 
