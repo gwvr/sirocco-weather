@@ -19,11 +19,10 @@
             --accent:       #1a6faf;
             --header:       #1a3c5e;
             --link:         #1a6faf;
+            --icon-color:   var(--text);
         }
 
-        @media (prefers-color-scheme: dark) { :root { --bg:#0f1923; --surface:#1a2535; --surface-2:#1e2d40; --text:#e0e0e0; --text-muted:#888888; --text-mid:#aaaaaa; --border:#2a3a4f; --border-strong:#3a4f6a; --accent:#2a86d4; --header:#cccccc; --link:#6ab0e0; } }
-        [data-theme="dark"]  { --bg:#0f1923; --surface:#1a2535; --surface-2:#1e2d40; --text:#e0e0e0; --text-muted:#888888; --text-mid:#aaaaaa; --border:#2a3a4f; --border-strong:#3a4f6a; --accent:#2a86d4; --header:#cccccc; --link:#6ab0e0; }
-        [data-theme="light"] { --bg:#b8b8b8; --surface:#ffffff; --surface-2:#f5f7fa; --text:#222222; --text-muted:#999999; --text-mid:#555555; --border:#e8e8e8; --border-strong:#dddddd; --accent:#1a6faf; --header:#1a3c5e; --link:#1a6faf; }
+        [[ themes_css | safe ]]
 
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -42,7 +41,7 @@
         .generated a { color: var(--link); text-decoration: none; }
         .generated a:hover { text-decoration: underline; }
 
-        .theme-toggle {
+        .theme-select {
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -53,7 +52,7 @@
             white-space: nowrap;
             flex-shrink: 0;
         }
-        .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+        .theme-select:hover { border-color: var(--accent); color: var(--accent); }
 
         /* Summary */
         .summary { display: none; }
@@ -200,8 +199,8 @@
             .daily-strip { overflow-x: auto; }
             .day-card { padding: 0.9rem 0.4rem; }
 
-            /* Larger touch target for theme toggle */
-            .theme-toggle { padding: 0.5rem 0.8rem; }
+            /* Larger touch target for theme selector */
+            .theme-select { padding: 0.5rem 0.8rem; }
 
             /* Abbreviated day names and row labels */
             .lbl-full { display: none; }
@@ -214,7 +213,9 @@
 <body>
     <header>
         <h1><a class="map-link" href="https://www.openstreetmap.org/?mlat=[[ lat ]]&mlon=[[ lon ]]&zoom=12" target="_blank">📍 [[ location_name ]]</a></h1>
-        <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">Dark mode</button>
+        <select class="theme-select" id="theme-select" onchange="selectTheme(this.value)">
+            [[ theme_options | safe ]]
+        </select>
     </header>
 
     <div class="daily-strip">
@@ -270,23 +271,22 @@
     }
 
     (function() {
-        const saved = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const dark = saved ? saved === 'dark' : prefersDark;
-        applyTheme(dark);
+        const defaultTheme = '[[ default_theme ]]';
+        const theme = localStorage.getItem('theme') || defaultTheme;
+        applyTheme(theme);
+        const sel = document.getElementById('theme-select');
+        if (sel) sel.value = theme;
         const active = document.querySelector('.hourly-panel.active');
         if (active) { syncRowHeights(active); scrollToCurrentHour(active); }
     })();
 
-    function applyTheme(dark) {
-        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-        document.getElementById('theme-btn').textContent = dark ? 'Light mode' : 'Dark mode';
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
     }
 
-    function toggleTheme() {
-        const dark = document.documentElement.getAttribute('data-theme') !== 'dark';
-        localStorage.setItem('theme', dark ? 'dark' : 'light');
-        applyTheme(dark);
+    function selectTheme(value) {
+        localStorage.setItem('theme', value);
+        applyTheme(value);
     }
     </script>
 </body>

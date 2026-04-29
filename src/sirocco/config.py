@@ -4,6 +4,41 @@ DEFAULT_TIMEZONE = "Europe/London"
 DEFAULT_LOCATION_NAME = "London, UK"
 
 API_URL = "https://api.open-meteo.com/v1/forecast"
+
+DEFAULT_THEME = "dark"
+
+THEMES: dict[str, dict[str, str]] = {
+    "light": {
+        "label": "Light",
+        "--bg": "#b8b8b8",
+        "--surface": "#ffffff",
+        "--surface-2": "#f5f7fa",
+        "--text": "#222222",
+        "--text-muted": "#999999",
+        "--text-mid": "#555555",
+        "--border": "#e8e8e8",
+        "--border-strong": "#dddddd",
+        "--accent": "#1a6faf",
+        "--header": "#1a3c5e",
+        "--link": "#1a6faf",
+        "--icon-color": "#222222",
+    },
+    "dark": {
+        "label": "Dark",
+        "--bg": "#0f1923",
+        "--surface": "#1a2535",
+        "--surface-2": "#1e2d40",
+        "--text": "#e0e0e0",
+        "--text-muted": "#888888",
+        "--text-mid": "#aaaaaa",
+        "--border": "#2a3a4f",
+        "--border-strong": "#3a4f6a",
+        "--accent": "#2a86d4",
+        "--header": "#cccccc",
+        "--link": "#6ab0e0",
+        "--icon-color": "#e0e0e0",
+    },
+}
 METEOCON_BASE = "static/icons"
 METEOCON_FILL_BASE = "static/icons-fill"
 METEOCON_FLAT_BASE = "static/icons-flat"

@@ -9,12 +9,14 @@ from .config import (
     DEFAULT_LATITUDE,
     DEFAULT_LOCATION_NAME,
     DEFAULT_LONGITUDE,
+    DEFAULT_THEME,
     DEFAULT_TIMEZONE,
     ICON_SETS,
     METEOCON_BASE,
     METEOCON_ICONS,
     MODEL_LABELS,
     MODEL_URLS,
+    THEMES,
     WMO_CODES,
 )
 
@@ -134,7 +136,7 @@ def weather_icon_html(
             return (
                 f'<span class="weather-icon" aria-label="{emoji}" style="'
                 f"display:block;width:{size}px;height:{size}px;"
-                f"background-color:currentColor;"
+                f"background-color:var(--icon-color);"
                 f"-webkit-mask-image:url('{uri}');"
                 f"mask-image:url('{uri}');"
                 f'mask-size:contain;mask-repeat:no-repeat;mask-position:center;"></span>'
@@ -216,6 +218,22 @@ def wind_arrow_char(speed: float | None) -> str:
     return "⬆⬆"  # strong — doubled heavy
 
 
+def _themes_css() -> str:
+    lines = []
+    for key, vals in THEMES.items():
+        props = "; ".join(f"{k}: {v}" for k, v in vals.items() if k.startswith("--"))
+        lines.append(f'        [data-theme="{key}"] {{ {props} }}')
+    return "\n".join(lines)
+
+
+def _theme_options(default_theme: str) -> str:
+    return "\n".join(
+        f'            <option value="{key}"{" selected" if key == default_theme else ""}>'
+        f"{vals['label']}</option>"
+        for key, vals in THEMES.items()
+    )
+
+
 def build_html(
     data: dict,
     location_name: str = DEFAULT_LOCATION_NAME,
@@ -226,6 +244,7 @@ def build_html(
     precip_model: str | None = None,
     icons: str = "meteocons",
     timezone: str = DEFAULT_TIMEZONE,
+    theme: str = DEFAULT_THEME,
 ) -> str:
     daily = data["daily"]
     hourly = data.get("hourly", {})
@@ -581,4 +600,7 @@ def build_html(
         day_cards=day_cards,
         hourly_panels=hourly_panels,
         icon_credit_html=icon_credit_html,
+        themes_css=_themes_css(),
+        theme_options=_theme_options(theme),
+        default_theme=theme,
     )
