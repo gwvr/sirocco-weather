@@ -7,6 +7,7 @@ API_URL = "https://api.open-meteo.com/v1/forecast"
 METEOCON_BASE = "static/icons"
 METEOCON_FILL_BASE = "static/icons-fill"
 METEOCON_FLAT_BASE = "static/icons-flat"
+METEOCON_MONOCHROME_BASE = "static/icons-monochrome"
 MAKIN_THINGS_BASE = "static/icons-makin"
 
 DAILY_VARIABLES = [
@@ -99,6 +100,7 @@ ICON_SETS = {
     "meteocons": (METEOCON_BASE, METEOCON_ICONS),
     "meteocons-fill": (METEOCON_FILL_BASE, METEOCON_ICONS),
     "meteocons-flat": (METEOCON_FLAT_BASE, METEOCON_ICONS),
+    "meteocons-monochrome": (METEOCON_MONOCHROME_BASE, METEOCON_ICONS),
     "makin-things": (MAKIN_THINGS_BASE, MAKIN_THINGS_ICONS),
 }
 

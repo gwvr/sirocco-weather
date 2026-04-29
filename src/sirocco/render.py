@@ -1,3 +1,4 @@
+import base64
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -125,6 +126,21 @@ def weather_icon_html(
     if not icons:
         return emoji
     name = icons[0] if is_day else icons[1]
+    if "monochrome" in icon_base:
+        svg_path = Path(icon_base) / f"{name}.svg"
+        try:
+            data = base64.b64encode(svg_path.read_bytes()).decode()
+            uri = f"data:image/svg+xml;base64,{data}"
+            return (
+                f'<span class="weather-icon" aria-label="{emoji}" style="'
+                f"display:block;width:{size}px;height:{size}px;"
+                f"background-color:currentColor;"
+                f"-webkit-mask-image:url('{uri}');"
+                f"mask-image:url('{uri}');"
+                f'mask-size:contain;mask-repeat:no-repeat;mask-position:center;"></span>'
+            )
+        except OSError:
+            return emoji
     return f'<img class="weather-icon" src="{icon_base}/{name}.svg" alt="{emoji}" width="{size}" height="{size}">'
 
 
