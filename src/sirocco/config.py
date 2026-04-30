@@ -100,6 +100,40 @@ THEMES: dict[str, dict[str, str]] = {
         "--icon-color": "#a9b1d6",
     },
 }
+DATAHUB_CODE_TO_WMO: dict[int, int] = {
+    0: 0,  # Clear night → Clear sky
+    1: 0,  # Sunny day → Clear sky
+    2: 2,  # Partly cloudy (night) → Partly cloudy
+    3: 2,  # Partly cloudy (day) → Partly cloudy
+    4: 3,  # Not used → Overcast
+    5: 45,  # Mist → Fog
+    6: 45,  # Fog → Fog
+    7: 2,  # Cloudy → Partly cloudy
+    8: 3,  # Overcast → Overcast
+    9: 80,  # Light rain shower (night) → Slight showers
+    10: 80,  # Light rain shower (day) → Slight showers
+    11: 51,  # Drizzle → Light drizzle
+    12: 61,  # Light rain → Slight rain
+    13: 81,  # Heavy rain shower (night) → Moderate showers
+    14: 81,  # Heavy rain shower (day) → Moderate showers
+    15: 65,  # Heavy rain → Heavy rain
+    16: 85,  # Sleet shower (night) → Slight snow showers
+    17: 85,  # Sleet shower (day) → Slight snow showers
+    18: 67,  # Sleet → Heavy freezing rain
+    19: 82,  # Hail shower (night) → Violent showers
+    20: 82,  # Hail shower (day) → Violent showers
+    21: 82,  # Hail → Violent showers
+    22: 85,  # Light snow shower (night) → Slight snow showers
+    23: 85,  # Light snow shower (day) → Slight snow showers
+    24: 71,  # Light snow → Slight snow fall
+    25: 86,  # Heavy snow shower (night) → Heavy snow showers
+    26: 86,  # Heavy snow shower (day) → Heavy snow showers
+    27: 75,  # Heavy snow → Heavy snow fall
+    28: 95,  # Thunder shower (night) → Thunderstorm
+    29: 95,  # Thunder shower (day) → Thunderstorm
+    30: 95,  # Thunder → Thunderstorm
+}
+
 PROVIDERS: dict[str, dict] = {
     "ecmwf": {
         "label": "ECMWF",
