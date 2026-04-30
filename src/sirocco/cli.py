@@ -7,7 +7,14 @@ from zoneinfo import ZoneInfo
 import yaml
 from dotenv import load_dotenv
 
-from .api import fetch_datahub_threehourly, fetch_forecast, fetch_precip_probability_datahub
+from .api import (
+    build_ukmo_hourly,
+    fetch_datahub_hourly_all,
+    fetch_datahub_threehourly,
+    fetch_datahub_threehourly_all,
+    fetch_forecast,
+    fetch_precip_probability_datahub,
+)
 from .config import (
     DEFAULT_LATITUDE,
     DEFAULT_LOCATION_NAME,
@@ -124,25 +131,42 @@ def main():
 
     print(f"Fetching forecast for {location_name}...")
 
-    if provider:
+    per_day_step = None
+    precip_model_note = "precip."
+
+    if provider and PROVIDERS[provider]["datahub"]:
+        # UKMO mode: Open-Meteo daily for day cards, DataHub for all display variables
+        om_model = PROVIDERS[provider]["open_meteo_model"]
+        data = fetch_forecast(lat, lon, timezone, om_model, wind_units)
+        datahub_key = os.environ.get("MET_OFFICE_API_KEY")
+        if datahub_key:
+            print("Fetching all variables from Met Office DataHub...")
+            dh_hourly_ts = fetch_datahub_hourly_all(lat, lon, datahub_key)
+            dh_3h_ts = fetch_datahub_threehourly_all(lat, lon, datahub_key)
+            hourly, per_day_step = build_ukmo_hourly(
+                data["daily"]["time"],
+                dh_hourly_ts,
+                dh_3h_ts,
+                timezone,
+                wind_units,
+                om_hourly=data.get("hourly"),
+            )
+            data["hourly"] = hourly
+            # Primary label: DataHub (display data); secondary: Open-Meteo (daily)
+            model = "ukmo_datahub"
+            precip_model = om_model
+            precip_model_note = "daily"
+        else:
+            print("Warning: provider=ukmo requires MET_OFFICE_API_KEY — hourly data unavailable")
+            model = om_model
+            precip_model = None
+    elif provider:
+        # ECMWF (or future non-DataHub providers)
         model = PROVIDERS[provider]["open_meteo_model"]
         data = fetch_forecast(lat, lon, timezone, model, wind_units)
         precip_model = None
-
-        if PROVIDERS[provider]["datahub"]:
-            datahub_key = os.environ.get("MET_OFFICE_API_KEY")
-            if datahub_key:
-                print("Fetching precipitation probability from Met Office DataHub...")
-                datahub_hourly = fetch_precip_probability_datahub(lat, lon, datahub_key)
-                datahub_3h = fetch_datahub_threehourly(lat, lon, datahub_key)
-                _apply_datahub_precip(data, datahub_hourly, timezone, datahub_3h)
-                precip_model = "ukmo_datahub"
-            else:
-                print(
-                    "Warning: provider=ukmo requires MET_OFFICE_API_KEY — precipitation from Open-Meteo only"
-                )
     else:
-        # Legacy path: model key + optional DataHub if API key present
+        # Legacy path: model key + optional DataHub precip overlay
         model = loc.get("model")
         data = fetch_forecast(lat, lon, timezone, model, wind_units)
         datahub_key = os.environ.get("MET_OFFICE_API_KEY")
@@ -150,7 +174,8 @@ def main():
         if datahub_key:
             print("Fetching precipitation probability from Met Office DataHub...")
             datahub_pp = fetch_precip_probability_datahub(lat, lon, datahub_key)
-            _apply_datahub_precip(data, datahub_pp, timezone)
+            datahub_3h = fetch_datahub_threehourly(lat, lon, datahub_key)
+            _apply_datahub_precip(data, datahub_pp, timezone, datahub_3h)
             precip_model = "ukmo_datahub"
 
     icons = loc.get("icons", args.icons)
@@ -166,6 +191,8 @@ def main():
         icons,
         timezone,
         theme,
+        per_day_step=per_day_step,
+        precip_model_note=precip_model_note,
     )
     output_path = Path(args.output)
     output_path.write_text(html, encoding="utf-8")

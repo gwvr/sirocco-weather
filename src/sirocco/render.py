@@ -246,6 +246,7 @@ def build_html(
     timezone: str = DEFAULT_TIMEZONE,
     theme: str = DEFAULT_THEME,
     per_day_step: list[int] | None = None,
+    precip_model_note: str = "precip.",
 ) -> str:
     daily = data["daily"]
     hourly = data.get("hourly", {})
@@ -607,6 +608,7 @@ def build_html(
         primary_model_url=MODEL_URLS.get(primary_model_lbl),
         precip_model_label=precip_model_lbl,
         precip_model_url=MODEL_URLS.get(precip_model_lbl) if precip_model_lbl else None,
+        precip_model_note=precip_model_note,
         summary_panels=summary_panels,
         day_cards=day_cards,
         hourly_panels=hourly_panels,
