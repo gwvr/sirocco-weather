@@ -1,0 +1,4 @@
+[submodule "vendor/meteocons"]
+	path = vendor/meteocons
+	url = https://github.com/basmilius/meteocons
+	branch = v2
