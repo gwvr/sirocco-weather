@@ -3,9 +3,12 @@ from unittest.mock import patch
 
 from sirocco.render import (
     build_html,
+    daily_pollen_dominant_type,
+    daily_pollen_max,
     format_date,
     format_time,
     model_label,
+    pollen_color,
     temp_color,
     uv_color,
     weather_icon_html,
@@ -255,3 +258,121 @@ def test_build_html_wind_units_mph():
 def test_build_html_emoji_icons():
     html = build_html(_forecast_with_hourly(), icons="emoji")
     assert 'class="weather-icon"' not in html
+
+
+# --- pollen_color ---
+
+
+def test_pollen_color_none_and_zero():
+    assert pollen_color(None) is None
+    assert pollen_color(0) is None
+    assert pollen_color(0.5) is None
+
+
+def test_pollen_color_bands():
+    assert pollen_color(1) == "pollc-0"
+    assert pollen_color(29) == "pollc-0"
+    assert pollen_color(30) == "pollc-1"
+    assert pollen_color(49) == "pollc-1"
+    assert pollen_color(50) == "pollc-2"
+    assert pollen_color(149) == "pollc-2"
+    assert pollen_color(150) == "pollc-3"
+    assert pollen_color(9999) == "pollc-3"
+
+
+# --- daily_pollen_max ---
+
+
+def test_daily_pollen_max_empty_data():
+    assert daily_pollen_max({}, ["2026-05-01"]) == [None]
+    assert daily_pollen_max({"time": []}, ["2026-05-01"]) == [None]
+
+
+def test_daily_pollen_max_correct():
+    data = {
+        "time": ["2026-05-01T00:00", "2026-05-01T12:00", "2026-05-02T00:00"],
+        "grass_pollen": [10.0, 40.0, 5.0],
+        "alder_pollen": [5.0, 20.0, None],
+        "birch_pollen": [None, None, None],
+        "mugwort_pollen": [0.0, 0.0, 0.0],
+        "ragweed_pollen": [0.0, 0.0, 0.0],
+    }
+    result = daily_pollen_max(data, ["2026-05-01", "2026-05-02"])
+    assert result[0] == 40.0
+    assert result[1] == 5.0
+
+
+def test_daily_pollen_max_beyond_horizon():
+    data = {
+        "time": ["2026-05-01T00:00"],
+        "grass_pollen": [25.0],
+        "alder_pollen": [0.0],
+        "birch_pollen": [0.0],
+        "mugwort_pollen": [0.0],
+        "ragweed_pollen": [0.0],
+    }
+    result = daily_pollen_max(data, ["2026-05-01", "2026-05-02"])
+    assert result[0] == 25.0
+    assert result[1] is None  # day 2 beyond horizon → blank
+
+
+def test_build_html_pollen_grass_dominant():
+    pollen_data = {
+        "time": ["2024-06-01T00:00", "2024-06-01T12:00"],
+        "grass_pollen": [60.0, 80.0],
+        "alder_pollen": [0.0, 0.0],
+        "birch_pollen": [0.0, 0.0],
+        "mugwort_pollen": [0.0, 0.0],
+        "ragweed_pollen": [0.0, 0.0],
+    }
+    html = build_html(_minimal_forecast(), pollen_data=pollen_data)
+    assert "pollen-grass-high" in html  # 80 grains → High, grass dominant
+    assert "High" in html
+    assert "pollen-forecast" in html  # NPARU link present
+
+
+def test_build_html_pollen_tree_dominant():
+    pollen_data = {
+        "time": ["2024-06-01T00:00"],
+        "grass_pollen": [10.0],
+        "alder_pollen": [0.0],
+        "birch_pollen": [45.0],
+        "mugwort_pollen": [0.0],
+        "ragweed_pollen": [0.0],
+    }
+    html = build_html(_minimal_forecast(), pollen_data=pollen_data)
+    assert "pollen-tree-moderate" in html  # 45 grains → Moderate, tree dominant
+    assert "Moderate" in html
+
+
+def test_build_html_pollen_no_data_renders_blank():
+    html = build_html(_minimal_forecast(), pollen_data={})
+    assert "pollen-grass-" not in html
+    assert "pollen-tree-" not in html
+
+
+# --- daily_pollen_dominant_type ---
+
+
+def test_daily_pollen_dominant_type_grass():
+    data = {
+        "time": ["2026-05-01T00:00"],
+        "grass_pollen": [50.0],
+        "alder_pollen": [0.0],
+        "birch_pollen": [10.0],
+        "mugwort_pollen": [0.0],
+        "ragweed_pollen": [0.0],
+    }
+    assert daily_pollen_dominant_type(data, ["2026-05-01"]) == ["grass"]
+
+
+def test_daily_pollen_dominant_type_tree():
+    data = {
+        "time": ["2026-05-01T00:00"],
+        "grass_pollen": [10.0],
+        "alder_pollen": [5.0],
+        "birch_pollen": [80.0],
+        "mugwort_pollen": [0.0],
+        "ragweed_pollen": [0.0],
+    }
+    assert daily_pollen_dominant_type(data, ["2026-05-01"]) == ["tree"]

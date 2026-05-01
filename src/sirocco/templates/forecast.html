@@ -195,6 +195,36 @@
         [data-theme="tokyo-night-moon"] .pc-3 { background: #3a4a99; color: #caddff }
         [data-theme="tokyo-night-moon"] .pc-4 { background: #4460cc; color: #e0eaff }
 
+        /* Pollen severity colour scale (UK Met Office thresholds, muted 75% toward white) */
+        .pollc-0 { background: #c9e4bf } /* green  — low       */
+        .pollc-1 { background: #fdf8bf } /* yellow — moderate  */
+        .pollc-2 { background: #fbe2bf } /* orange — high      */
+        .pollc-3 { background: #f8cbc3 } /* red    — very high */
+
+        /* Pollen — dark theme overrides */
+        [data-theme="dark"] .pollc-0 { background: #1e3a20; color: #90d090 }
+        [data-theme="dark"] .pollc-1 { background: #3a3a10; color: #d8d890 }
+        [data-theme="dark"] .pollc-2 { background: #3a2210; color: #d89060 }
+        [data-theme="dark"] .pollc-3 { background: #3a1414; color: #d07070 }
+
+        /* Pollen — Tokyo Night overrides */
+        [data-theme="tokyo-night"] .pollc-0 { background: #1a3a1e; color: #70c870 }
+        [data-theme="tokyo-night"] .pollc-1 { background: #3a3818; color: #c8c870 }
+        [data-theme="tokyo-night"] .pollc-2 { background: #3a2410; color: #c89060 }
+        [data-theme="tokyo-night"] .pollc-3 { background: #3a1616; color: #c86060 }
+
+        /* Pollen — Tokyo Night Storm overrides */
+        [data-theme="tokyo-night-storm"] .pollc-0 { background: #1a3a1e; color: #70c870 }
+        [data-theme="tokyo-night-storm"] .pollc-1 { background: #3a3818; color: #c8c870 }
+        [data-theme="tokyo-night-storm"] .pollc-2 { background: #3a2410; color: #c89060 }
+        [data-theme="tokyo-night-storm"] .pollc-3 { background: #3a1616; color: #c86060 }
+
+        /* Pollen — Tokyo Night Moon overrides */
+        [data-theme="tokyo-night-moon"] .pollc-0 { background: #1e3a22; color: #80c880 }
+        [data-theme="tokyo-night-moon"] .pollc-1 { background: #3a381c; color: #c8c880 }
+        [data-theme="tokyo-night-moon"] .pollc-2 { background: #3a2614; color: #c89870 }
+        [data-theme="tokyo-night-moon"] .pollc-3 { background: #3a1818; color: #c87070 }
+
         .tinted { color: #222 }
 
         footer {
@@ -248,7 +278,7 @@
 
     [[ hourly_panels | safe ]]
 
-    <p class="generated">Generated [[ generated_at ]] &mdash; Data from [% if primary_model_url %]<a href="[[ primary_model_url ]]" target="_blank">[[ primary_model_label ]]</a>[% else %][[ primary_model_label ]][% endif %][% if precip_model_label %] &amp; [% if precip_model_url %]<a href="[[ precip_model_url ]]" target="_blank">[[ precip_model_label ]]</a>[% else %][[ precip_model_label ]][% endif %] ([[ precip_model_note ]])[% endif %] via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a>[% if icon_credit_html %] &mdash; Weather icons by [[ icon_credit_html | safe ]][% endif %]</p>
+    <p class="generated">Generated [[ generated_at ]] &mdash; Weather data from [% if primary_model_url %]<a href="[[ primary_model_url ]]" target="_blank">[[ primary_model_label ]]</a>[% else %][[ primary_model_label ]][% endif %][% if precip_model_label %] &amp; [% if precip_model_url %]<a href="[[ precip_model_url ]]" target="_blank">[[ precip_model_label ]]</a>[% else %][[ precip_model_label ]][% endif %][% endif %] via <a href="https://open-meteo.com/" target="_blank">Open-Meteo</a>[% if pollen_shown %] &mdash; Pollen data from <a href="https://atmosphere.copernicus.eu/charts/packages/cams_air_quality/products/europe-air-quality-forecast-pollens" target="_blank">Copernicus CAMS</a> via Open-Meteo[% endif %][% if icon_credit_html %] &mdash; Weather icons by [[ icon_credit_html | safe ]][% endif %]</p>
 
     <script>
     function syncRowHeights(panel) {

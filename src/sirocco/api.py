@@ -276,6 +276,38 @@ def build_ukmo_hourly(
     }, per_day_step
 
 
+_POLLEN_SPECIES = [
+    "alder_pollen",
+    "birch_pollen",
+    "grass_pollen",
+    "mugwort_pollen",
+    "ragweed_pollen",
+]
+
+
+def fetch_pollen(latitude: float, longitude: float, timezone: str) -> dict:
+    """Fetch hourly pollen from Open-Meteo CAMS air quality API (~5-day horizon, Europe only).
+
+    Returns {"time": [...], "alder_pollen": [...], ...} or {} on error.
+    """
+    try:
+        response = httpx.get(
+            "https://air-quality-api.open-meteo.com/v1/air-quality",
+            params={
+                "latitude": latitude,
+                "longitude": longitude,
+                "timezone": timezone,
+                "hourly": ",".join(_POLLEN_SPECIES),
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+        return response.json().get("hourly", {})
+    except Exception as e:
+        print(f"Pollen fetch failed: {e} — pollen will be blank")
+        return {}
+
+
 # --- Open-Meteo fetches ---
 
 

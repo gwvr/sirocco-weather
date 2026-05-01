@@ -13,6 +13,7 @@ from .api import (
     fetch_datahub_threehourly,
     fetch_datahub_threehourly_all,
     fetch_forecast,
+    fetch_pollen,
     fetch_precip_probability_datahub,
 )
 from .config import (
@@ -178,6 +179,11 @@ def main():
             _apply_datahub_precip(data, datahub_pp, timezone, datahub_3h)
             precip_model = "ukmo_datahub"
 
+    pollen_data = {}
+    if loc.get("pollen", True):
+        print("Fetching pollen data from Open-Meteo CAMS...")
+        pollen_data = fetch_pollen(lat, lon, timezone)
+
     icons = loc.get("icons", args.icons)
     theme = loc.get("theme", args.theme)
     html = build_html(
@@ -193,6 +199,7 @@ def main():
         theme,
         per_day_step=per_day_step,
         precip_model_note=precip_model_note,
+        pollen_data=pollen_data,
     )
     output_path = Path(args.output)
     output_path.write_text(html, encoding="utf-8")
