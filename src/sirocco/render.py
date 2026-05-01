@@ -13,11 +13,34 @@ from .config import (
     DEFAULT_TIMEZONE,
     ICON_SETS,
     METEOCON_BASE,
+    METEOCON_FILL_BASE,
     METEOCON_ICONS,
     MODEL_LABELS,
     MODEL_URLS,
     THEMES,
     WMO_CODES,
+)
+
+_POLLEN_SPECIES = [
+    "alder_pollen",
+    "birch_pollen",
+    "grass_pollen",
+    "mugwort_pollen",
+    "ragweed_pollen",
+]
+_POLLEN_LABELS = ["Low", "Moderate", "High", "Very High"]
+_POLLEN_SEVERITY_SUFFIXES = ["low", "moderate", "high", "very-high"]
+_POLLEN_SPECIES_TYPE = {
+    "grass_pollen": "grass",
+    "alder_pollen": "tree",
+    "birch_pollen": "tree",
+    "mugwort_pollen": "tree",
+    "ragweed_pollen": "tree",
+}
+_POLLEN_LINK = (
+    "https://www.worc.ac.uk/about/academic-schools/school-of-science-and-the-environment"
+    "/science-and-the-environment-research/national-pollen-and-aerobiology-research-unit"
+    "/pollen-forecast.aspx"
 )
 
 _env = Environment(
@@ -97,6 +120,57 @@ def precip_color(p: float | None) -> str | None:
     if p < 90:
         return "pc-3"
     return "pc-4"
+
+
+def pollen_color(max_grains: float | None) -> str | None:
+    """Return a CSS class for pollen severity, or None if negligible/absent."""
+    if max_grains is None or max_grains < 1:
+        return None
+    if max_grains < 30:
+        return "pollc-0"
+    if max_grains < 50:
+        return "pollc-1"
+    if max_grains < 150:
+        return "pollc-2"
+    return "pollc-3"
+
+
+def daily_pollen_max(pollen_data: dict, dates: list[str]) -> list[float | None]:
+    """Return max pollen grains/m³ across all species for each date."""
+    if not pollen_data or not pollen_data.get("time"):
+        return [None] * len(dates)
+    times = pollen_data["time"]
+    result = []
+    for date_str in dates:
+        day_values = []
+        for species in _POLLEN_SPECIES:
+            species_vals = pollen_data.get(species, [])
+            for j, t in enumerate(times):
+                if t.startswith(date_str) and j < len(species_vals) and species_vals[j] is not None:
+                    day_values.append(species_vals[j])
+        result.append(max(day_values) if day_values else None)
+    return result
+
+
+def daily_pollen_dominant_type(pollen_data: dict, dates: list[str]) -> list[str]:
+    """Return 'grass' or 'tree' for the dominant pollen species type each day."""
+    if not pollen_data or not pollen_data.get("time"):
+        return ["grass"] * len(dates)
+    times = pollen_data["time"]
+    result = []
+    for date_str in dates:
+        type_max: dict[str, float] = {}
+        for species, species_type in _POLLEN_SPECIES_TYPE.items():
+            vals = pollen_data.get(species, [])
+            day_vals = [
+                vals[j]
+                for j, t in enumerate(times)
+                if t.startswith(date_str) and j < len(vals) and vals[j] is not None
+            ]
+            if day_vals:
+                type_max[species_type] = max(type_max.get(species_type, 0.0), max(day_vals))
+        result.append(max(type_max, key=lambda k: type_max[k]) if type_max else "grass")
+    return result
 
 
 def uv_color(uv: float) -> str:
@@ -247,6 +321,7 @@ def build_html(
     theme: str = DEFAULT_THEME,
     per_day_step: list[int] | None = None,
     precip_model_note: str = "precip.",
+    pollen_data: dict | None = None,
 ) -> str:
     daily = data["daily"]
     hourly = data.get("hourly", {})
@@ -264,6 +339,9 @@ def build_html(
     today = _now.date()
     first_forecast_date = datetime.strptime(dates[0], "%Y-%m-%d").date()
     is_first_day_today = first_forecast_date == today
+
+    pollen_daily = daily_pollen_max(pollen_data or {}, dates)
+    pollen_types = daily_pollen_dominant_type(pollen_data or {}, dates)
 
     # Calculate the hour offset for hourly data slicing.
     # Open-Meteo API returns daily forecast starting from today or tomorrow,
@@ -353,6 +431,23 @@ def build_html(
             max_precip = None
             min_humidity = None
 
+        p_max = pollen_daily[i] if i < len(pollen_daily) else None
+        p_cls = pollen_color(p_max)
+        if p_cls:
+            idx = int(p_cls[-1])
+            p_lbl = _POLLEN_LABELS[idx]
+            p_type = pollen_types[i] if i < len(pollen_types) else "grass"
+            icon_name = f"pollen-{p_type}-{_POLLEN_SEVERITY_SUFFIXES[idx]}"
+            _picon = f'<img src="{METEOCON_FILL_BASE}/{icon_name}.svg" width="24" height="24" class="detail-icon" alt="">'
+            pollen_html = (
+                f"<span>"
+                f'<a href="{_POLLEN_LINK}" target="_blank" style="text-decoration:none;color:inherit;">'
+                f"{_picon} {p_lbl}"
+                f"</a></span>"
+            )
+        else:
+            pollen_html = ""
+
         active = "active" if i == 0 else ""
         summary_panels += f"""
     <div class="summary {active}" id="summary-{i}">
@@ -364,6 +459,7 @@ def build_html(
             {f"<span>{detail_icon('rain')} {max_precip:.0f}%</span>" if max_precip is not None else ""}
             {f"<span>{detail_icon('humidity')} {min_humidity:.0f}%</span>" if min_humidity is not None else ""}
             {f"<span>{detail_icon(f'uv-index-{max(1, min(int(uv), 11))}')} UV {uv:.0f}</span>" if uv is not None else ""}
+            {pollen_html}
         </div>
     </div>"""
 
@@ -616,4 +712,5 @@ def build_html(
         themes_css=_themes_css(),
         theme_options=_theme_options(theme),
         default_theme=theme,
+        pollen_shown=any(v is not None for v in pollen_daily),
     )
