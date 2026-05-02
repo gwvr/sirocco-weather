@@ -189,6 +189,21 @@ THEMES: dict[str, dict[str, str]] = {
         "--link": "#076678",
         "--icon-color": "#3c3836",
     },
+    "dracula": {
+        "label": "Dracula",
+        "--bg": "#282a36",
+        "--surface": "#44475a",
+        "--surface-2": "#21222c",
+        "--text": "#f8f8f2",
+        "--text-muted": "#6272a4",
+        "--text-mid": "#a0a8b8",
+        "--border": "#44475a",
+        "--border-strong": "#6272a4",
+        "--accent": "#bd93f9",
+        "--header": "#f8f8f2",
+        "--link": "#8be9fd",
+        "--icon-color": "#f8f8f2",
+    },
 }
 DATAHUB_CODE_TO_WMO: dict[int, int] = {
     0: 0,  # Clear night → Clear sky
