@@ -54,7 +54,7 @@ Three sub-endpoints are used:
 
 **Provides (all days, daily):**
 - `dayMaxScreenTemperature` — daily maximum temperature (same value as Met Office website)
-- `nightMinScreenTemperature` — overnight low following the day (Met Office convention)
+- `nightMinScreenTemperature` — overnight low (6pm–6am) following the day; day N's displayed min uses the **preceding** day's nightMin (the low people experience in the early morning)
 
 ### Open-Meteo (ukmo_seamless)
 
