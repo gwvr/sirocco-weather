@@ -42,3 +42,18 @@ BugShots
 .opencode
 .pi
 .vibe
+
+# AI tool config dirs
+.ai-setup
+.bak/
+.mcp.json
+.env.*
+.bash_profile
+.bashrc
+.gitconfig
+.gitmodules
+.idea
+.profile
+.ripgreprc
+.zprofile
+.zshrc
