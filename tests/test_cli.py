@@ -93,14 +93,7 @@ class TestUkmoDailyTempOverride:
         data = self._make_forecast_data()
         mock_forecast.return_value = data
         mock_build.return_value = (data["hourly"], [1, 3, 3])
-        # nightMinScreenTemperature is 6pm-6am: the low following the day.
-        # Day N's displayed min uses the preceding day's nightMin.
         mock_daily.return_value = [
-            {
-                "time": "2026-06-14T00:00Z",
-                "dayMaxScreenTemperature": 19.0,
-                "nightMinScreenTemperature": 8.0,
-            },
             {
                 "time": "2026-06-15T00:00Z",
                 "dayMaxScreenTemperature": 24.0,
@@ -121,11 +114,8 @@ class TestUkmoDailyTempOverride:
         with patch.dict(os.environ, {"MET_OFFICE_API_KEY": "test-key"}):
             main()
 
-        # Jun 15 max=24 (from Jun 15), min=8 (nightMin from Jun 14)
-        # Jun 16 max=25, min=13 (nightMin from Jun 15)
-        # Jun 17 max=22 (no DataHub), min=None from Jun 16 → keeps OM 12.0
         assert data["daily"]["temperature_2m_max"] == [24.0, 25.0, 22.0]
-        assert data["daily"]["temperature_2m_min"] == [8.0, 13.0, 12.0]
+        assert data["daily"]["temperature_2m_min"] == [13.0, 11.0, 9.0]
 
     @patch("sirocco.cli.build_html", return_value="<html></html>")
     @patch("sirocco.cli.fetch_pollen", return_value={})

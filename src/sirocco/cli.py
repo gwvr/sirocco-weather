@@ -1,6 +1,6 @@
 import argparse
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -158,24 +158,16 @@ def main():
             dh_daily_ts = fetch_datahub_daily(lat, lon, datahub_key)
             if dh_daily_ts:
                 dh_daily_by_date = {e["time"][:10]: e for e in dh_daily_ts}
-                daily_dates = data["daily"]["time"]
-                for i, date_str in enumerate(daily_dates):
+                for i, date_str in enumerate(data["daily"]["time"]):
                     entry = dh_daily_by_date.get(date_str)
-                    if entry:
-                        day_max = entry.get("dayMaxScreenTemperature")
-                        if day_max is not None:
-                            data["daily"]["temperature_2m_max"][i] = day_max
-                    # nightMinScreenTemperature is 6pm-6am: the overnight low
-                    # following a day. The preceding day's nightMin is the low
-                    # people experience in the early morning of this day.
-                    prev_date = (
-                        datetime.strptime(date_str, "%Y-%m-%d") - timedelta(days=1)
-                    ).strftime("%Y-%m-%d")
-                    prev_entry = dh_daily_by_date.get(prev_date)
-                    if prev_entry:
-                        night_min = prev_entry.get("nightMinScreenTemperature")
-                        if night_min is not None:
-                            data["daily"]["temperature_2m_min"][i] = night_min
+                    if not entry:
+                        continue
+                    day_max = entry.get("dayMaxScreenTemperature")
+                    if day_max is not None:
+                        data["daily"]["temperature_2m_max"][i] = day_max
+                    night_min = entry.get("nightMinScreenTemperature")
+                    if night_min is not None:
+                        data["daily"]["temperature_2m_min"][i] = night_min
 
             model = "ukmo_datahub"
             precip_model = om_model
