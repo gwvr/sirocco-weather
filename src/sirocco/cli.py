@@ -18,6 +18,7 @@ from .api import (
     fetch_precip_probability_datahub,
 )
 from .config import (
+    DATAHUB_CODE_TO_WMO,
     DEFAULT_LATITUDE,
     DEFAULT_LOCATION_NAME,
     DEFAULT_LONGITUDE,
@@ -168,6 +169,14 @@ def main():
                     night_min = entry.get("nightMinScreenTemperature")
                     if night_min is not None:
                         data["daily"]["temperature_2m_min"][i] = night_min
+                    day_code = entry.get("daySignificantWeatherCode")
+                    if day_code is not None:
+                        data["daily"]["weather_code"][i] = DATAHUB_CODE_TO_WMO.get(
+                            day_code, day_code
+                        )
+                    uv = entry.get("maxUvIndex")
+                    if uv is not None:
+                        data["daily"]["uv_index_max"][i] = uv
 
             model = "ukmo_datahub"
             precip_model = om_model
