@@ -108,6 +108,25 @@ def fetch_datahub_threehourly_all(latitude: float, longitude: float, api_key: st
         return []
 
 
+def fetch_datahub_daily(latitude: float, longitude: float, api_key: str) -> list:
+    """Fetch the daily time series from Met Office DataHub (7-day horizon).
+
+    Returns the raw list of time series entry dicts, or [] on error.
+    """
+    try:
+        response = httpx.get(
+            f"{_DATAHUB_BASE}/daily",
+            params={"latitude": latitude, "longitude": longitude},
+            headers={"apikey": api_key},
+            timeout=10,
+        )
+        response.raise_for_status()
+        return response.json()["features"][0]["properties"]["timeSeries"]
+    except Exception as e:
+        print(f"DataHub daily fetch failed: {e}")
+        return []
+
+
 def build_ukmo_hourly(
     dates: list[str],
     dh_hourly_ts: list,

@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from sirocco.api import fetch_pollen
+from sirocco.api import fetch_datahub_daily, fetch_pollen
 
 
 def test_fetch_pollen_success():
@@ -35,3 +35,29 @@ def test_fetch_pollen_http_error_returns_empty():
     with patch("sirocco.api.httpx.get", return_value=mock_resp):
         result = fetch_pollen(51.0, -0.1, "Europe/London")
     assert result == {}
+
+
+class TestFetchDatahubDaily:
+    def test_success_returns_time_series(self):
+        ts = [
+            {"time": "2026-06-15T00:00Z", "dayMaxScreenTemperature": 22.0},
+            {"time": "2026-06-16T00:00Z", "dayMaxScreenTemperature": 19.0},
+        ]
+        mock_resp = MagicMock()
+        mock_resp.json.return_value = {"features": [{"properties": {"timeSeries": ts}}]}
+        mock_resp.raise_for_status = MagicMock()
+        with patch("sirocco.api.httpx.get", return_value=mock_resp):
+            result = fetch_datahub_daily(51.5, -0.1, "test-key")
+        assert result == ts
+
+    def test_error_returns_empty_list(self):
+        with patch("sirocco.api.httpx.get", side_effect=Exception("timeout")):
+            result = fetch_datahub_daily(51.5, -0.1, "test-key")
+        assert result == []
+
+    def test_http_error_returns_empty_list(self):
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.side_effect = Exception("503")
+        with patch("sirocco.api.httpx.get", return_value=mock_resp):
+            result = fetch_datahub_daily(51.5, -0.1, "test-key")
+        assert result == []
