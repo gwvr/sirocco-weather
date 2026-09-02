@@ -404,8 +404,6 @@ def build_html(
                 if hourly.get("relative_humidity_2m")
                 and hourly["relative_humidity_2m"][j] is not None
             ]
-            tmax = max(h_temps) if h_temps else daily["temperature_2m_max"][i]
-            tmin = min(h_temps) if h_temps else daily["temperature_2m_min"][i]
             # Only show UV if all daylight hours have data
             times = hourly.get("time", [])
             daylight_uv = [
@@ -424,8 +422,6 @@ def build_html(
             max_precip = max(h_precip) if h_precip else None
             min_humidity = min(h_humidity) if h_humidity else None
         else:
-            tmax = daily["temperature_2m_max"][i]
-            tmin = daily["temperature_2m_min"][i]
             uv = daily["uv_index_max"][i]
             max_gust = None
             max_precip = None
