@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 from .api import (
     build_ukmo_hourly,
+    fetch_datahub_daily,
     fetch_datahub_hourly_all,
     fetch_datahub_threehourly,
     fetch_datahub_threehourly_all,
@@ -136,7 +137,7 @@ def main():
     precip_model_note = "precip."
 
     if provider and PROVIDERS[provider]["datahub"]:
-        # UKMO mode: Open-Meteo daily for day cards, DataHub for all display variables
+        # UKMO mode: Open-Meteo for daily frame, DataHub for hourly + daily temps
         om_model = PROVIDERS[provider]["open_meteo_model"]
         data = fetch_forecast(lat, lon, timezone, om_model, wind_units)
         datahub_key = os.environ.get("MET_OFFICE_API_KEY")
@@ -153,10 +154,24 @@ def main():
                 om_hourly=data.get("hourly"),
             )
             data["hourly"] = hourly
-            # Primary label: DataHub (display data); secondary: Open-Meteo (daily)
+
+            dh_daily_ts = fetch_datahub_daily(lat, lon, datahub_key)
+            if dh_daily_ts:
+                dh_daily_by_date = {e["time"][:10]: e for e in dh_daily_ts}
+                for i, date_str in enumerate(data["daily"]["time"]):
+                    entry = dh_daily_by_date.get(date_str)
+                    if not entry:
+                        continue
+                    day_max = entry.get("dayMaxScreenTemperature")
+                    if day_max is not None:
+                        data["daily"]["temperature_2m_max"][i] = day_max
+                    night_min = entry.get("nightMinScreenTemperature")
+                    if night_min is not None:
+                        data["daily"]["temperature_2m_min"][i] = night_min
+
             model = "ukmo_datahub"
             precip_model = om_model
-            precip_model_note = "daily"
+            precip_model_note = "daily temps + frame"
         else:
             print("Warning: provider=ukmo requires MET_OFFICE_API_KEY — hourly data unavailable")
             model = om_model

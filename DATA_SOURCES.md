@@ -28,12 +28,13 @@ The primary production mode. Two APIs are combined: DataHub for display-quality 
 
 The site-specific endpoint returns point forecasts interpolated to the requested lat/lon from the UKV model — the same source used by the Met Office website.
 
-Two sub-endpoints are used:
+Three sub-endpoints are used:
 
 | Endpoint | Horizon | Step | Used for |
 |---|---|---|---|
 | `/hourly` | ~2 days | 1 h | Days 1–2 hourly display data |
 | `/three-hourly` | ~7 days | 3 h | Days 3–7 display data |
+| `/daily` | ~7 days | 1 day | Daily max/min temperature for day cards |
 
 **Provides (days 1–2, hourly):**
 - Screen temperature (`screenTemperature`)
@@ -45,11 +46,15 @@ Two sub-endpoints are used:
 - Weather code (mapped from DataHub codes to WMO via `DATAHUB_CODE_TO_WMO`)
 
 **Provides (days 3–7, three-hourly):**
-- Temperature (averaged from `maxScreenAirTemp` / `minScreenAirTemp` per slot — see known limitation below)
+- Temperature (averaged from `maxScreenAirTemp` / `minScreenAirTemp` per slot)
 - Feels-like temperature
 - Wind speed, direction, gusts
 - Precipitation probability
 - Weather code
+
+**Provides (all days, daily):**
+- `dayMaxScreenTemperature` — daily maximum temperature (same value as Met Office website)
+- `nightMinScreenTemperature` — overnight low following the day (Met Office convention)
 
 ### Open-Meteo (ukmo_seamless)
 
@@ -57,24 +62,16 @@ Two sub-endpoints are used:
 **Model:** `ukmo_seamless` — UKMO global seamless, ~10 km resolution
 **Coverage:** Global
 
-Used purely for the daily structural frame that drives the day cards. DataHub does not expose daily aggregates directly.
+Used for the daily structural frame that drives the day cards (precipitation, wind, UV, sunrise/sunset, weather code). Daily max/min temperatures are overridden by DataHub `/daily` values where available.
 
 **Provides (all days):**
-- Daily max/min temperature ⚠️ _(see known limitation below)_
 - Daily precipitation sum
 - Daily max precipitation probability
 - Daily max wind speed
 - Daily max UV index
 - Sunrise / sunset times
 - Daily weather code (for day-card icon)
-
-### Known limitation — daily max/min temperatures (Wea-d6hm)
-
-Daily high/low temperatures on the day cards currently come from Open-Meteo `ukmo_seamless` (global, ~10 km), **not** from DataHub UKV. This is why day-card temperatures can be slightly lower than the Met Office website, which derives its daily max/min from the UKV model.
-
-The fix (tracked in `Wea-d6hm`) is to derive daily max/min directly from DataHub data:
-- Days 1–2: `max/min(screenTemperature)` across the day's hourly DataHub entries
-- Days 3–7: `maxScreenAirTemp` / `minScreenAirTemp` from the three-hourly entries
+- Daily max/min temperature (fallback, used only when DataHub `/daily` value is unavailable)
 
 ---
 
@@ -126,10 +123,10 @@ Fetched independently of the weather provider. Can be disabled per-location with
 | Hourly wind / humidity / UV (days 3–7) | DataHub UKV `/three-hourly` | Open-Meteo ECMWF | Open-Meteo (model) |
 | Hourly precipitation probability (days 1–2) | DataHub UKV `/hourly` | Open-Meteo ECMWF | DataHub overlay (if key set) |
 | Hourly precipitation probability (days 3–7) | DataHub UKV `/three-hourly` | Open-Meteo ECMWF | DataHub overlay (if key set) |
-| Daily max/min temperature ⚠️ | Open-Meteo `ukmo_seamless` | Open-Meteo ECMWF | Open-Meteo (model) |
+| Daily max/min temperature | DataHub UKV `/daily` ¹ | Open-Meteo ECMWF | Open-Meteo (model) |
 | Daily precipitation sum | Open-Meteo `ukmo_seamless` | Open-Meteo ECMWF | Open-Meteo (model) |
 | Daily max wind / UV / precip prob | Open-Meteo `ukmo_seamless` | Open-Meteo ECMWF | Open-Meteo (model) |
 | Sunrise / sunset | Open-Meteo `ukmo_seamless` | Open-Meteo ECMWF | Open-Meteo (model) |
 | Pollen severity | Open-Meteo CAMS | Open-Meteo CAMS | Open-Meteo CAMS |
 
-⚠️ Known limitation — see Wea-d6hm.
+¹ Falls back to Open-Meteo `ukmo_seamless` when the DataHub `/daily` value is unavailable.
